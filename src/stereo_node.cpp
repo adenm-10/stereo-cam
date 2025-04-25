@@ -104,14 +104,14 @@ void StereoNode::initialize() {
     configure_cameras();
 
     // Start cameras
-    left_cam_->startVideo();
     right_cam_->startVideo();
+    left_cam_->startVideo();
 
     // Initialize IMU
     imu_ = std::make_unique<ICM20948>();
     if (!imu_->init()) {
         RCLCPP_ERROR(this->get_logger(), "Failed to initialize IMU");
-        return;
+        // return;
     } else {
         // Configure IMU
         imu_->configureAccel(AccelRange::G4);
@@ -190,6 +190,7 @@ void StereoNode::run() {
             
             // Capture images
             bool left_ok = left_cam_->getVideoFrame(left_frame, 100);  // 100ms timeout
+            // std::cout << "M = " << std::endl << " "  << left_frame << std::endl << std::endl;
             bool right_ok = right_cam_->getVideoFrame(right_frame, 100);  // 100ms timeout
 
             if (left_ok && right_ok) {

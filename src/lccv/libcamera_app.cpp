@@ -5,8 +5,8 @@
  * libcamera_app.cpp - base class for libcamera apps.
  */
 
-#include "libcamera_app.hpp"
-#include "libcamera_app_options.hpp"
+#include "lccv/libcamera_app.hpp"
+#include "lccv/libcamera_app_options.hpp"
 
 LibcameraApp::LibcameraApp(std::unique_ptr<Options> opts)
 	: options_(std::move(opts)), controls_(controls::controls)
@@ -53,8 +53,9 @@ void LibcameraApp::OpenCamera()
 		throw std::runtime_error("failed to acquire camera " + cam_id);
 	camera_acquired_ = true;
 
-	if (options_->verbose)
-		std::cerr << "Acquired camera " << cam_id << std::endl;
+	// if (options_->verbose)
+	if (true)
+		std::cout << "Acquired camera " << cam_id << std::endl;
 
 }
 

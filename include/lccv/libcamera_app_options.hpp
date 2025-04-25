@@ -60,7 +60,7 @@ public:
 	roi_x=roi_y=roi_width=roi_height=0;
 	awb_gain_r=awb_gain_b=0;
         denoise="auto";
-        verbose=false;
+        verbose=true;
 	transform=libcamera::Transform::Identity;
 	camera=0;
 	}

@@ -4,7 +4,7 @@
  *
  * options.cpp - common program options helpers
  */
-#include "libcamera_app_options.hpp"
+#include "lccv/libcamera_app_options.hpp"
 
 void Options::Print() const
 {

@@ -1,4 +1,4 @@
-#include "lccv.hpp"
+#include "lccv/lccv.hpp"
 #include <libcamera/libcamera/stream.h>
 #include <time.h>
 
@@ -19,6 +19,7 @@ PiCamera::PiCamera(uint32_t id) {
     options->framerate = 30;
     options->denoise = "auto";
     options->timeout = 1000;
+    options->verbose = true;
     options->setMetering(Metering_Modes::METERING_MATRIX);
     options->setExposureMode(Exposure_Modes::EXPOSURE_NORMAL);
     options->setWhiteBalance(WhiteBalance_Modes::WB_AUTO);
