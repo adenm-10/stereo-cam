@@ -203,6 +203,9 @@ void StereoNode::run() {
             // Sleep until next capture time
             auto end = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+
+            RCLCPP_INFO(get_logger(), "Frame Processed");
+
             if (duration < period) {
                 std::this_thread::sleep_for(period - duration);
             }
