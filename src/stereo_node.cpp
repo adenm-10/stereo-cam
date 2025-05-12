@@ -1,15 +1,30 @@
 #include "stereo_cam/stereo_node.hpp"
 #include <geometry_msgs/msg/transform_stamped.hpp>
 
+#include <iostream>
+#include <linux/videodev2.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+#include <cstring>
+
 namespace stereo_cam {
 
 // Definition of static member
+// TODO Change these to the presets found using 
 const std::vector<CameraConfig::Resolution> CameraConfig::SUPPORTED_MODES = {
     {3280, 2464, 21.19}, // Full resolution
-    {1920, 1080, 47.57}, // 1080p
+    // {1920, 1080, 47.57}, // 1080p
+    {1920, 1080, 30.00}, // 1080p
     {1280, 720, 41.85},  // 720p
     {640, 480, 206.65}    // VGA
 };
+
+const std::vector<std::vector<float>> RASPI_SUPPORTED MODES = {
+    {}
+};
+
+
 
 StereoNode::StereoNode(const rclcpp::NodeOptions& options, const std::string& name)
     : Node(name, options) {
@@ -64,6 +79,8 @@ StereoNode::StereoNode(const rclcpp::NodeOptions& options, const std::string& na
     }
     RCLCPP_INFO(get_logger(), "Final width: %d, height: %d, frame rate: %d", width_, height_, frame_rate_);
 
+    // bool ok1 = set_format_yuyv("/dev/video6", 800, 600);
+
     // Get parameters
     frame_id_ = this->get_parameter("frame_id").as_string();
     imu_rate_ = this->get_parameter("imu_rate").as_int();
@@ -98,14 +115,24 @@ void StereoNode::initialize() {
     right_info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("camera/right/camera_info", 10);
 
     // Initialize cameras
-    left_cam_ = std::make_unique<lccv::PiCamera>(0);
-    right_cam_ = std::make_unique<lccv::PiCamera>(1);
+    std::string left_gst_str =
+    "v4l2src device=/dev/video4 io-mode=2 ! "
+    "video/x-h264,width=640,height=480,framerate=30/1 ! "
+    "h264parse ! avdec_h264 ! videoconvert ! "
+    "video/x-raw,format=BGR ! appsink";
 
-    configure_cameras();
+    std::string right_gst_str = 
+    "v4l2src device=/dev/video6 ! "
+    "image/jpeg,width=640,height=480,framerate=30/1 ! "
+    "jpegdec ! videoconvert ! "
+    "video/x-raw,format=BGR ! appsink";
 
-    // Start cameras
-    right_cam_->startVideo();
-    left_cam_->startVideo();
+    // cams(left_gst_str, right_gst_str);
+    // right_cam_ = std::make_unique<lccv::PiCamera>(1);
+    left_cam_ = std::make_unique<cv_cam::Arducam>(left_gst_str);
+    right_cam_ = std::make_unique<cv_cam::Arducam>(right_gst_str);
+
+    // configure_cameras();
 
     // Initialize IMU
     imu_ = std::make_unique<ICM20948>();
@@ -129,6 +156,7 @@ void StereoNode::initialize() {
         RCLCPP_INFO(this->get_logger(), "IMU initialized successfully at %d Hz", imu_rate_);
     }
 
+    // RCLCPP_INFO(this->get_logger(), "\n\nLeft Camera info url: %s\n\n", left_camera_info_url_);
 
     // Initialize camera info managers with their respective URLs
     left_info_manager_ = std::make_unique<camera_info_manager::CameraInfoManager>(
@@ -151,23 +179,23 @@ void StereoNode::initialize() {
     }
 
     // In initialize() function after creating camera info managers
-    std::string calib_file = this->declare_parameter("calibration_file", "");
-    calib_file = this->get_parameter("calibration_file").as_string();
-    if (!calib_file.empty()) {
-        sensor_msgs::msg::CameraInfo left_info, right_info;
-        // check if the content of the file is empty
-        std::ifstream file(calib_file);
-        std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        left_info.width = width_;
-        left_info.height = height_;
-        right_info.width = width_;
-        right_info.height = height_;
-        if (CalibrationUtils::updateCameraInfo(calib_file, left_info, right_info)) {
-            left_info_manager_->setCameraInfo(left_info);
-            right_info_manager_->setCameraInfo(right_info);
-            RCLCPP_INFO(get_logger(), "Updated camera info from calibration file");
-        }
-    }
+    // std::string calib_file = this->declare_parameter("calibration_file", "");
+    // calib_file = this->get_parameter("calibration_file").as_string();
+    // if (!calib_file.empty()) {
+    //     sensor_msgs::msg::CameraInfo left_info, right_info;
+    //     // check if the content of the file is empty
+    //     std::ifstream file(calib_file);
+    //     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    //     left_info.width = width_;
+    //     left_info.height = height_;
+    //     right_info.width = width_;
+    //     right_info.height = height_;
+    //     if (CalibrationUtils::updateCameraInfo(calib_file, left_info, right_info)) {
+    //         left_info_manager_->setCameraInfo(left_info);
+    //         right_info_manager_->setCameraInfo(right_info);
+    //         RCLCPP_INFO(get_logger(), "Updated camera info from calibration file");
+    //     }
+    // }
 
     // Instead of creating a timer, we'll use a flag to control the loop
     running_ = true;
@@ -189,11 +217,14 @@ void StereoNode::run() {
             cv::Mat left_frame, right_frame;
             
             // Capture images
+            // bool left_ok = left_cam_->getVideoFrame(left_frame, 100);  // 100ms timeout
+            // bool right_ok = right_cam_->getVideoFrame(right_frame, 100);  // 100ms timeout
+
             bool left_ok = left_cam_->getVideoFrame(left_frame, 100);  // 100ms timeout
-            // std::cout << "M = " << std::endl << " "  << left_frame << std::endl << std::endl;
             bool right_ok = right_cam_->getVideoFrame(right_frame, 100);  // 100ms timeout
 
             if (left_ok && right_ok) {
+                RCLCPP_INFO(this->get_logger(), "Publishing raw images - %ld", std::chrono::high_resolution_clock::now());
                 publish_images(left_frame, right_frame);
             } else {
                 RCLCPP_WARN(this->get_logger(), "Failed to capture stereo images - Left: %d, Right: %d",
@@ -204,7 +235,7 @@ void StereoNode::run() {
             auto end = std::chrono::high_resolution_clock::now();
             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
-            RCLCPP_INFO(get_logger(), "Frame Processed");
+            // RCLCPP_INFO(get_logger(), "Frame Processed");
 
             if (duration < period) {
                 std::this_thread::sleep_for(period - duration);
@@ -219,71 +250,74 @@ void StereoNode::run() {
 StereoNode::~StereoNode() {
     running_ = false;
     // Give the capture thread time to finish
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    if (left_cam_) left_cam_->stopVideo();
-    if (right_cam_) right_cam_->stopVideo();
+    // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // if (left_cam_) left_cam_->stopVideo();
+    // if (right_cam_) right_cam_->stopVideo();
 }
 
-void StereoNode::configure_cameras() {
-    RCLCPP_INFO(get_logger(), "Configuring cameras with resolution: %dx%d @ %d fps", 
-                width_, height_, frame_rate_);
+// void StereoNode::configure_cameras() {
+//     RCLCPP_INFO(get_logger(), "Configuring cameras with resolution: %dx%d @ %d fps", 
+//                 width_, height_, frame_rate_);
 
-    // Configure left camera
-    left_cam_->options->video_width = width_;
-    left_cam_->options->video_height = height_;
-    // left_cam_->options->framerate = 30;
+//     // Configure left camera
+//     left_cam_->options->video_width = width_;
+//     left_cam_->options->video_height = height_;
+//     // left_cam_->options->framerate = 30;
 
-    // Configure right camera
-    right_cam_->options->video_width = width_;
-    right_cam_->options->video_height = height_;
-    // right_cam_->options->framerate = 30;
+//     // Configure right camera
+//     right_cam_->options->video_width = width_;
+//     right_cam_->options->video_height = height_;
+//     right_cam_->options->framerate = 30;
 
-    // Print current configuration
-    RCLCPP_INFO(get_logger(), "Left camera options: %dx%d @ %d fps", 
-                left_cam_->options->video_width,
-                left_cam_->options->video_height,
-                left_cam_->options->framerate);
+//     // Print current configuration
+//     RCLCPP_INFO(get_logger(), "Left camera options: %dx%d @ %d fps", 
+//                 left_cam_->options->video_width,
+//                 left_cam_->options->video_height,
+//                 left_cam_->options->framerate);
 
-    RCLCPP_INFO(get_logger(), "Right camera options: %dx%d @ %d fps", 
-                right_cam_->options->video_width,
-                right_cam_->options->video_height,
-                right_cam_->options->framerate);
+//     RCLCPP_INFO(get_logger(), "Right camera options: %dx%d @ %d fps", 
+//                 right_cam_->options->video_width,
+//                 right_cam_->options->video_height,
+//                 right_cam_->options->framerate);
 
-    // Initialize camera info messages
-    left_info_.header.frame_id = frame_id_;
-    left_info_.width = width_;
-    left_info_.height = height_;
+//     // Initialize camera info messages
+//     left_info_.header.frame_id = frame_id_;
+//     left_info_.width = width_;
+//     left_info_.height = height_;
 
-    right_info_ = left_info_;  // Copy basic parameters
-}
+//     right_info_ = left_info_;  // Copy basic parameters
+// }
 
-void StereoNode::timer_callback() {
-    auto start = std::chrono::high_resolution_clock::now();
-    cv::Mat left_frame, right_frame;
+// void StereoNode::timer_callback() {
+//     auto start = std::chrono::high_resolution_clock::now();
+//     cv::Mat left_frame, right_frame;
     
-    // // Capture images
-    // if (!left_cam_->getVideoFrame(left_frame, 1000) || 
-    //     !right_cam_->getVideoFrame(right_frame, 1000)) {
-    //     RCLCPP_WARN(this->get_logger(), "Failed to capture stereo images");
-    //     return;
-    // }
+//     // Capture images
+//     if (!left_cam_->getVideoFrame(left_frame, 1000) || 
+//         !right_cam_->getVideoFrame(right_frame, 1000)) {
+//         RCLCPP_WARN(this->get_logger(), "Failed to capture stereo images");
+//         return;
+//     }
 
-    auto capture_end = std::chrono::high_resolution_clock::now();
-    auto capture_duration = std::chrono::duration_cast<std::chrono::microseconds>(
-        capture_end - start).count();
+//     auto capture_end = std::chrono::high_resolution_clock::now();
+//     auto capture_duration = std::chrono::duration_cast<std::chrono::microseconds>(
+//         capture_end - start).count();
 
-    RCLCPP_INFO(this->get_logger(), 
-        "Capture timing - Total: %ld us, System time: %ld", 
-        capture_duration,
-        std::chrono::duration_cast<std::chrono::microseconds>(
-            std::chrono::system_clock::now().time_since_epoch()
-        ).count());
+//     RCLCPP_INFO(this->get_logger(), 
+//         "Capture timing - Total: %ld us, System time: %ld", 
+//         capture_duration,
+//         std::chrono::duration_cast<std::chrono::microseconds>(
+//             std::chrono::system_clock::now().time_since_epoch()
+//         ).count());
 
-    // publish_images(left_frame, right_frame);
-}
+//     // publish_images(left_frame, right_frame);
+// }
 
 void StereoNode::publish_images(const cv::Mat& left_img, const cv::Mat& right_img) {
     auto stamp = this->now();
+
+    // std::cout << "left_bgr: channels = " << left_img.channels()
+    //       << ", step = " << left_img.step << std::endl;
     
     // Convert and publish left image
     sensor_msgs::msg::Image::SharedPtr left_msg = 

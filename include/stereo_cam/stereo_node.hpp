@@ -13,8 +13,10 @@
 #include <tf2_ros/static_transform_broadcaster.h>
 
 #include "lccv/lccv.hpp"
+#include "cv_cam/cv_cam.hpp"
 #include "stereo_cam/icm20948.hpp"
 #include "stereo_cam/calib_utils.hpp"
+
 namespace stereo_cam {
 
 struct CameraConfig {
@@ -49,8 +51,10 @@ private:
     void publish_images(const cv::Mat& left_img, const cv::Mat& right_img);
 
     // Camera instances
-    std::unique_ptr<lccv::PiCamera> left_cam_;
-    std::unique_ptr<lccv::PiCamera> right_cam_;
+    // std::unique_ptr<lccv::PiCamera> left_cam_;
+    // std::unique_ptr<lccv::PiCamera> right_cam_;
+    std::unique_ptr<cv_cam::Arducam> left_cam_;
+    std::unique_ptr<cv_cam::Arducam> right_cam_;
 
     // Publishers
     std::shared_ptr<image_transport::ImageTransport> it_;

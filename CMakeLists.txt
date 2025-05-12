@@ -5,7 +5,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
-# Find dependencies
+# Dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
@@ -21,17 +21,17 @@ find_package(OpenCV REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 
-# Check for libcamera
+# libcamera
 pkg_check_modules(LIBCAMERA REQUIRED IMPORTED_TARGET libcamera)
 
-# Set include directories
+# Include directories
 include_directories(
   include
   ${LIBCAMERA_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
 )
 
-# Create the LCCV library
+# lccv_core library
 add_library(lccv_core
   src/lccv/lccv.cpp
   src/lccv/libcamera_app.cpp
@@ -41,8 +41,6 @@ add_library(lccv_core
 target_include_directories(lccv_core PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
-  ${LIBCAMERA_INCLUDE_DIRS}
-  ${OpenCV_INCLUDE_DIRS}
 )
 
 target_link_libraries(lccv_core PUBLIC
@@ -51,13 +49,33 @@ target_link_libraries(lccv_core PUBLIC
   pthread
 )
 
-# Create the ROS node executable
+# cv_cam library
+add_library(cv_cam
+  src/cv_cam/cv_cam.cpp
+)
+
+target_include_directories(cv_cam PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
+target_link_libraries(cv_cam PUBLIC
+  PkgConfig::LIBCAMERA
+  ${OpenCV_LIBS}
+  pthread
+)
+
+# stereo_node executable
 add_executable(stereo_node 
   src/main.cpp
   src/stereo_node.cpp
   src/icm20948.cpp
   src/depth_node.cpp
   src/calib_utils.cpp
+)
+
+target_include_directories(stereo_node PRIVATE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
 ament_target_dependencies(stereo_node
@@ -76,9 +94,10 @@ ament_target_dependencies(stereo_node
 
 target_link_libraries(stereo_node
   lccv_core
+  cv_cam
 )
 
-# Add mag_viz_node executable
+# mag_viz_node
 add_executable(mag_viz_node src/mag_viz_node.cpp)
 
 ament_target_dependencies(mag_viz_node
@@ -87,7 +106,7 @@ ament_target_dependencies(mag_viz_node
   visualization_msgs
 )
 
-# Add stereo calibration executable
+# stereo_calib executable
 add_executable(stereo_calib 
   src/stereo_calib.cpp
 )
@@ -105,17 +124,18 @@ ament_target_dependencies(stereo_calib
 install(TARGETS
   stereo_node
   mag_viz_node
-  lccv_core
   stereo_calib
+  lccv_core
+  cv_cam
   DESTINATION lib/${PROJECT_NAME}
 )
 
-# Install include directories
+# Install headers
 install(DIRECTORY include/
   DESTINATION include/
 )
 
-# Install launch and config files
+# Install assets
 install(DIRECTORY
   launch
   config
@@ -123,15 +143,19 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}/
 )
 
-# Install Python scripts
+# Install scripts
 install(PROGRAMS
   scripts/cap.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
-# Export dependencies
+# Export all libraries and includes
 ament_export_include_directories(include)
-ament_export_libraries(lccv_core)
+ament_export_libraries(
+  lccv_core
+  cv_cam
+)
+
 ament_export_dependencies(
   rclcpp
   sensor_msgs
@@ -142,7 +166,7 @@ ament_export_dependencies(
   camera_info_manager
   tf2
   tf2_ros
+  OpenCV
 )
 
 ament_package()
-
