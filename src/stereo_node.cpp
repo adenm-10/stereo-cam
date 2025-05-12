@@ -209,7 +209,7 @@ void StereoNode::initialize() {
                        << "jpegdec ! videoconvert ! "
                        << "video/x-raw,format=BGR ! appsink";
         
-        right_gst_str = left_pipeline.str();
+        left_gst_str = left_pipeline.str();
 
         std::ostringstream right_pipeline;
         right_pipeline << "v4l2src device=" << right_port_ << " io-mode=2 ! "
