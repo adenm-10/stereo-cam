@@ -6,11 +6,11 @@ stereo_node:
     image_height: 1080
     frame_rate: 30
 
-    left_format: 
+    left_format: MJPG
     left_port: /dev/video0
     left_device: Raspi
 
-    right_format: 
+    right_format: MJPG
     right_port: /dev/video4
     right_device: Raspi
     

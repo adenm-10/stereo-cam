@@ -46,10 +46,30 @@ const std::vector<ArducamCameraConfig> ARDUCAM_SUPPORTED_MODES = {
     {"MJPG", "/dev/video6", "Laptop", 320,  240,  30},
 
     // Raspi Port 0
-    {"", "", "", 1, 1, 1},
+    {"MJPG", "/dev/video0", "Laptop", 1920, 1080, 30},
+    {"MJPG", "/dev/video0", "Laptop", 1280, 720,  30},
+    {"MJPG", "/dev/video0", "Laptop", 800,  600,  30},
+    {"MJPG", "/dev/video0", "Laptop", 640,  480,  30},
+    {"MJPG", "/dev/video0", "Laptop", 640,  360,  30},
+    {"MJPG", "/dev/video0", "Laptop", 640,  360,  20},
+    {"MJPG", "/dev/video0", "Laptop", 640,  360,  15},
+    {"MJPG", "/dev/video0", "Laptop", 640,  360,  10},
+    {"MJPG", "/dev/video0", "Laptop", 640,  360,  5},
+    {"MJPG", "/dev/video0", "Laptop", 352,  288,  30},
+    {"MJPG", "/dev/video0", "Laptop", 320,  240,  30},
 
     // Raspi Port 4
-    {"", "", "", 1, 1, 1},
+    {"MJPG", "/dev/video4", "Laptop", 1920, 1080, 30},
+    {"MJPG", "/dev/video4", "Laptop", 1280, 720,  30},
+    {"MJPG", "/dev/video4", "Laptop", 800,  600,  30},
+    {"MJPG", "/dev/video4", "Laptop", 640,  480,  30},
+    {"MJPG", "/dev/video4", "Laptop", 640,  360,  30},
+    {"MJPG", "/dev/video4", "Laptop", 640,  360,  20},
+    {"MJPG", "/dev/video4", "Laptop", 640,  360,  15},
+    {"MJPG", "/dev/video4", "Laptop", 640,  360,  10},
+    {"MJPG", "/dev/video4", "Laptop", 640,  360,  5},
+    {"MJPG", "/dev/video4", "Laptop", 352,  288,  30},
+    {"MJPG", "/dev/video4", "Laptop", 320,  240,  30},
 };
 
 StereoNode::StereoNode(const rclcpp::NodeOptions& options, const std::string& name)
@@ -159,6 +179,7 @@ void StereoNode::initialize() {
 
     // Initialize cameras
     if (left_config_.device == "Laptop" && right_config_.device == "Laptop") {
+        
         std::ostringstream pipeline;
         pipeline << "v4l2src device=" << left_port_ << " io-mode=2 ! "
                  << "video/x-h264,width=" << width_ << ",height=" << height_
@@ -178,9 +199,24 @@ void StereoNode::initialize() {
         right_gst_str = right_pipeline.str();
         
     } else if (left_config_.device == "Raspi" && right_config_.device == "Raspi") {
-        left_gst_str = "";
 
-        right_gst_str = "";
+        std::ostringstream left_pipeline;
+        left_pipeline << "v4l2src device=" << left_port_ << " io-mode=2 ! "
+                       << "image/jpeg,width=" << width_ << ",height=" << height_
+                       << ",framerate=" << frame_rate_ << "/1 ! "
+                       << "jpegdec ! videoconvert ! "
+                       << "video/x-raw,format=BGR ! appsink";
+        
+        right_gst_str = left_pipeline.str();
+
+        std::ostringstream right_pipeline;
+        right_pipeline << "v4l2src device=" << right_port_ << " io-mode=2 ! "
+                       << "image/jpeg,width=" << width_ << ",height=" << height_
+                       << ",framerate=" << frame_rate_ << "/1 ! "
+                       << "jpegdec ! videoconvert ! "
+                       << "video/x-raw,format=BGR ! appsink";
+        
+        right_gst_str = right_pipeline.str();
         
     } else {
         RCLCPP_ERROR(this->get_logger(), "Mismatched configuration devices");
