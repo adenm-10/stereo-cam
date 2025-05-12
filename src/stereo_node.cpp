@@ -46,30 +46,30 @@ const std::vector<ArducamCameraConfig> ARDUCAM_SUPPORTED_MODES = {
     {"MJPG", "/dev/video6", "Laptop", 320,  240,  30},
 
     // Raspi Port 0
-    {"MJPG", "/dev/video0", "Laptop", 1920, 1080, 30},
-    {"MJPG", "/dev/video0", "Laptop", 1280, 720,  30},
-    {"MJPG", "/dev/video0", "Laptop", 800,  600,  30},
-    {"MJPG", "/dev/video0", "Laptop", 640,  480,  30},
-    {"MJPG", "/dev/video0", "Laptop", 640,  360,  30},
-    {"MJPG", "/dev/video0", "Laptop", 640,  360,  20},
-    {"MJPG", "/dev/video0", "Laptop", 640,  360,  15},
-    {"MJPG", "/dev/video0", "Laptop", 640,  360,  10},
-    {"MJPG", "/dev/video0", "Laptop", 640,  360,  5},
-    {"MJPG", "/dev/video0", "Laptop", 352,  288,  30},
-    {"MJPG", "/dev/video0", "Laptop", 320,  240,  30},
+    {"MJPG", "/dev/video0", "Raspi", 1920, 1080, 30},
+    {"MJPG", "/dev/video0", "Raspi", 1280, 720,  30},
+    {"MJPG", "/dev/video0", "Raspi", 800,  600,  30},
+    {"MJPG", "/dev/video0", "Raspi", 640,  480,  30},
+    {"MJPG", "/dev/video0", "Raspi", 640,  360,  30},
+    {"MJPG", "/dev/video0", "Raspi", 640,  360,  20},
+    {"MJPG", "/dev/video0", "Raspi", 640,  360,  15},
+    {"MJPG", "/dev/video0", "Raspi", 640,  360,  10},
+    {"MJPG", "/dev/video0", "Raspi", 640,  360,  5},
+    {"MJPG", "/dev/video0", "Raspi", 352,  288,  30},
+    {"MJPG", "/dev/video0", "Raspi", 320,  240,  30},
 
     // Raspi Port 4
-    {"MJPG", "/dev/video4", "Laptop", 1920, 1080, 30},
-    {"MJPG", "/dev/video4", "Laptop", 1280, 720,  30},
-    {"MJPG", "/dev/video4", "Laptop", 800,  600,  30},
-    {"MJPG", "/dev/video4", "Laptop", 640,  480,  30},
-    {"MJPG", "/dev/video4", "Laptop", 640,  360,  30},
-    {"MJPG", "/dev/video4", "Laptop", 640,  360,  20},
-    {"MJPG", "/dev/video4", "Laptop", 640,  360,  15},
-    {"MJPG", "/dev/video4", "Laptop", 640,  360,  10},
-    {"MJPG", "/dev/video4", "Laptop", 640,  360,  5},
-    {"MJPG", "/dev/video4", "Laptop", 352,  288,  30},
-    {"MJPG", "/dev/video4", "Laptop", 320,  240,  30},
+    {"MJPG", "/dev/video4", "Raspi", 1920, 1080, 30},
+    {"MJPG", "/dev/video4", "Raspi", 1280, 720,  30},
+    {"MJPG", "/dev/video4", "Raspi", 800,  600,  30},
+    {"MJPG", "/dev/video4", "Raspi", 640,  480,  30},
+    {"MJPG", "/dev/video4", "Raspi", 640,  360,  30},
+    {"MJPG", "/dev/video4", "Raspi", 640,  360,  20},
+    {"MJPG", "/dev/video4", "Raspi", 640,  360,  15},
+    {"MJPG", "/dev/video4", "Raspi", 640,  360,  10},
+    {"MJPG", "/dev/video4", "Raspi", 640,  360,  5},
+    {"MJPG", "/dev/video4", "Raspi", 352,  288,  30},
+    {"MJPG", "/dev/video4", "Raspi", 320,  240,  30},
 };
 
 StereoNode::StereoNode(const rclcpp::NodeOptions& options, const std::string& name)
@@ -126,6 +126,7 @@ StereoNode::StereoNode(const rclcpp::NodeOptions& options, const std::string& na
 
     if (!found_preset) {
         RCLCPP_ERROR(this->get_logger(), "Left camera config not found, exiting");
+        return;
     }
     found_preset = false;
 
@@ -140,6 +141,7 @@ StereoNode::StereoNode(const rclcpp::NodeOptions& options, const std::string& na
 
     if (!found_preset) {
         RCLCPP_ERROR(this->get_logger(), "Right camera config not found, exiting");
+        return;
     }
 
     RCLCPP_INFO(get_logger(), "Final width: %d, height: %d, frame rate: %d", width_, height_, frame_rate_);
@@ -179,7 +181,7 @@ void StereoNode::initialize() {
 
     // Initialize cameras
     if (left_config_.device == "Laptop" && right_config_.device == "Laptop") {
-        
+
         std::ostringstream pipeline;
         pipeline << "v4l2src device=" << left_port_ << " io-mode=2 ! "
                  << "video/x-h264,width=" << width_ << ",height=" << height_
