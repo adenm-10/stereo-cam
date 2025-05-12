@@ -1,0 +1,34 @@
+stereo_node:
+  ros__parameters:
+    enable_depth: false
+
+    image_width: 1920
+    image_height: 1080
+    frame_rate: 30
+    
+    left_format: H264
+    left_port: /dev/video4
+    left_device: Laptop
+
+    right_format: MJPG
+    right_port: /dev/video6
+    right_device: Laptop
+    
+    imu_rate: 100
+    
+    frame_id: "camera_link"
+    left_camera_frame: "left_camera_frame"
+    right_camera_frame: "right_camera_frame"
+    imu_frame: "imu_link"
+    exposure_mode: "normal"
+    gain: 1.0
+    exposure_time: 0  # 0 for auto
+    left_camera_info_url: "package://stereo_cam/config/left_camera_info.yaml"
+    right_camera_info_url: "package://stereo_cam/config/right_camera_info.yaml"
+    calibration_file: "package://stereo_cam/config/StereoCalibration.yaml"
+
+  
+    stereo:
+      baseline: 0.06  # 60mm between cameras
+      focal_length: 2822.10  # pixels
+      principal_point: [1640.0, 1232.0]  # pixels 

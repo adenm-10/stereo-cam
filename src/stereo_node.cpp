@@ -20,19 +20,54 @@ const std::vector<CameraConfig::Resolution> CameraConfig::SUPPORTED_MODES = {
     {640, 480, 206.65}    // VGA
 };
 
-const std::vector<std::vector<float>> RASPI_SUPPORTED MODES = {
-    {}
+const std::vector<ArducamCameraConfig> ARDUCAM_SUPPORTED_MODES = {
+    // Format, Port, Device, width, height, fps
+    
+    // Laptop Port 4
+    {"H264", "/dev/video4", "Laptop", 1920, 1080, 30},
+    {"H264", "/dev/video4", "Laptop", 1280, 720,  30},
+    {"H264", "/dev/video4", "Laptop", 800,  600,  30},
+    {"H264", "/dev/video4", "Laptop", 640,  480,  30},
+    {"H264", "/dev/video4", "Laptop", 640,  360,  30},
+    {"H264", "/dev/video4", "Laptop", 352,  288,  30},
+    {"H264", "/dev/video4", "Laptop", 320,  240,  30},
+
+    // Laptop Port 6
+    {"MJPG", "/dev/video6", "Laptop", 1920, 1080, 30},
+    {"MJPG", "/dev/video6", "Laptop", 1280, 720,  30},
+    {"MJPG", "/dev/video6", "Laptop", 800,  600,  30},
+    {"MJPG", "/dev/video6", "Laptop", 640,  480,  30},
+    {"MJPG", "/dev/video6", "Laptop", 640,  360,  30},
+    {"MJPG", "/dev/video6", "Laptop", 640,  360,  20},
+    {"MJPG", "/dev/video6", "Laptop", 640,  360,  15},
+    {"MJPG", "/dev/video6", "Laptop", 640,  360,  10},
+    {"MJPG", "/dev/video6", "Laptop", 640,  360,  5},
+    {"MJPG", "/dev/video6", "Laptop", 352,  288,  30},
+    {"MJPG", "/dev/video6", "Laptop", 320,  240,  30},
+
+    // Raspi Port 0
+    {"", "", "", 1, 1, 1},
+
+    // Raspi Port 4
+    {"", "", "", 1, 1, 1},
 };
-
-
 
 StereoNode::StereoNode(const rclcpp::NodeOptions& options, const std::string& name)
     : Node(name, options) {
     
     // Only declare and get parameters in constructor
-    this->declare_parameter("width", rclcpp::ParameterValue(640));
-    this->declare_parameter("height", rclcpp::ParameterValue(480));
+    this->declare_parameter("left_format", "");
+    this->declare_parameter("left_port", "");
+    this->declare_parameter("left_device", "");
+
+    this->declare_parameter("right_format", "");
+    this->declare_parameter("right_port", "");
+    this->declare_parameter("right_device", "");
+
+    this->declare_parameter("image_width", rclcpp::ParameterValue(640));
+    this->declare_parameter("image_height", rclcpp::ParameterValue(480));
     this->declare_parameter("frame_rate", rclcpp::ParameterValue(30));
+
     this->declare_parameter("frame_id", "camera_frame");
     this->declare_parameter("resolution_preset", "1080p");
     this->declare_parameter("imu_rate", 100);
@@ -41,45 +76,53 @@ StereoNode::StereoNode(const rclcpp::NodeOptions& options, const std::string& na
     this->declare_parameter("stereo.baseline", 0.06);  // 60mm default
     this->declare_parameter("enable_depth", false);
 
-    // Get resolution from preset
-    std::string preset = this->get_parameter("resolution_preset").as_string();
-    RCLCPP_INFO(get_logger(), "Resolution preset: %s", preset.c_str());
-
     // Default to VGA if no match
-    width_ = 1920;
-    height_ = 1080;
-    frame_rate_ = 30;
+    width_ = this->get_parameter("image_width").as_int();
+    height_ = this->get_parameter("image_height").as_int();
+    frame_rate_ = this->get_parameter("frame_rate").as_int();
 
-    for (const auto& mode : CameraConfig::SUPPORTED_MODES) {
-        if (preset == "1080p" && mode.width == 1920) {
-            width_ = mode.width;
-            height_ = mode.height;
-            frame_rate_ = mode.fps;
-            RCLCPP_INFO(get_logger(), "Setting 1080p mode: %dx%d @ %d fps", width_, height_, frame_rate_);
-            break;
-        } else if (preset == "720p" && mode.width == 1280) {
-            width_ = mode.width;
-            height_ = mode.height;
-            frame_rate_ = mode.fps;
-            RCLCPP_INFO(get_logger(), "Setting 720p mode: %dx%d @ %d fps", width_, height_, frame_rate_);
-            break;
-        } else if (preset == "full" && mode.width == 3280) {
-            width_ = mode.width;
-            height_ = mode.height;
-            frame_rate_ = mode.fps;
-            RCLCPP_INFO(get_logger(), "Setting full resolution mode: %dx%d @ %d fps", width_, height_, frame_rate_);
-            break;
-        } else if (preset == "vga" && mode.width == 640) {
-            width_ = mode.width;
-            height_ = mode.height;
-            frame_rate_ = mode.fps;
-            RCLCPP_INFO(get_logger(), "Setting VGA mode: %dx%d @ %d fps", width_, height_, frame_rate_);
+    right_format_ = this->get_parameter("right_format").as_string();
+    right_port_ = this->get_parameter("right_port").as_string();
+    right_device_ = this->get_parameter("right_device").as_string();
+
+    left_format_ = this->get_parameter("left_format").as_string();
+    left_port_ = this->get_parameter("left_port").as_string();
+    left_device_ = this->get_parameter("left_device").as_string();
+
+    // Format, Port, Device, width, height, fps
+    left_config_ = {left_format_, left_port_, left_device_, width_, height_, frame_rate_};       
+    right_config_ = {right_format_, right_port_, right_device_, width_, height_, frame_rate_};
+
+    bool found_preset = false;
+
+    for (const ArducamCameraConfig& mode : ARDUCAM_SUPPORTED_MODES) {
+        if (left_config_ == mode) {
+            RCLCPP_INFO(get_logger(), "\nLeft Camera Config Confirmed as format: %s, port: %s, device: %s, width: %d, height: %d, frame rate: %d\n", 
+                left_format_.c_str(), left_port_.c_str(), left_device_.c_str(), width_, height_, frame_rate_);
+            found_preset = true;
             break;
         }
     }
-    RCLCPP_INFO(get_logger(), "Final width: %d, height: %d, frame rate: %d", width_, height_, frame_rate_);
 
-    // bool ok1 = set_format_yuyv("/dev/video6", 800, 600);
+    if (!found_preset) {
+        RCLCPP_ERROR(this->get_logger(), "Left camera config not found, exiting");
+    }
+    found_preset = false;
+
+    for (const ArducamCameraConfig& mode : ARDUCAM_SUPPORTED_MODES) {
+        if (right_config_ == mode) {
+            RCLCPP_INFO(get_logger(), "\nRight Camera Config Confirmed as format: %s, port: %s, device: %s, width: %d, height: %d, frame rate: %d\n", 
+                right_format_.c_str(), right_port_.c_str(), right_device_.c_str(), width_, height_, frame_rate_);
+            found_preset = true;
+            break;
+        }
+    }
+
+    if (!found_preset) {
+        RCLCPP_ERROR(this->get_logger(), "Right camera config not found, exiting");
+    }
+
+    RCLCPP_INFO(get_logger(), "Final width: %d, height: %d, frame rate: %d", width_, height_, frame_rate_);
 
     // Get parameters
     frame_id_ = this->get_parameter("frame_id").as_string();
@@ -115,17 +158,33 @@ void StereoNode::initialize() {
     right_info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("camera/right/camera_info", 10);
 
     // Initialize cameras
-    std::string left_gst_str =
-    "v4l2src device=/dev/video4 io-mode=2 ! "
-    "video/x-h264,width=640,height=480,framerate=30/1 ! "
-    "h264parse ! avdec_h264 ! videoconvert ! "
-    "video/x-raw,format=BGR ! appsink";
+    if (left_config_.device == "Laptop" && right_config_.device == "Laptop") {
+        std::ostringstream pipeline;
+        pipeline << "v4l2src device=" << left_port_ << " io-mode=2 ! "
+                 << "video/x-h264,width=" << width_ << ",height=" << height_
+                 << ",framerate=" << frame_rate_ << "/1 ! "
+                 << "h264parse ! avdec_h264 ! videoconvert ! "
+                 << "video/x-raw,format=BGR ! appsink";
+        
+        left_gst_str = pipeline.str();
 
-    std::string right_gst_str = 
-    "v4l2src device=/dev/video6 ! "
-    "image/jpeg,width=640,height=480,framerate=30/1 ! "
-    "jpegdec ! videoconvert ! "
-    "video/x-raw,format=BGR ! appsink";
+        std::ostringstream right_pipeline;
+        right_pipeline << "v4l2src device=" << right_port_ << " io-mode=2 ! "
+                       << "image/jpeg,width=" << width_ << ",height=" << height_
+                       << ",framerate=" << frame_rate_ << "/1 ! "
+                       << "jpegdec ! videoconvert ! "
+                       << "video/x-raw,format=BGR ! appsink";
+        
+        right_gst_str = right_pipeline.str();
+        
+    } else if (left_config_.device == "Raspi" && right_config_.device == "Raspi") {
+        left_gst_str = "";
+
+        right_gst_str = "";
+        
+    } else {
+        RCLCPP_ERROR(this->get_logger(), "Mismatched configuration devices");
+    }
 
     // cams(left_gst_str, right_gst_str);
     // right_cam_ = std::make_unique<lccv::PiCamera>(1);
@@ -179,23 +238,23 @@ void StereoNode::initialize() {
     }
 
     // In initialize() function after creating camera info managers
-    // std::string calib_file = this->declare_parameter("calibration_file", "");
-    // calib_file = this->get_parameter("calibration_file").as_string();
-    // if (!calib_file.empty()) {
-    //     sensor_msgs::msg::CameraInfo left_info, right_info;
-    //     // check if the content of the file is empty
-    //     std::ifstream file(calib_file);
-    //     std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    //     left_info.width = width_;
-    //     left_info.height = height_;
-    //     right_info.width = width_;
-    //     right_info.height = height_;
-    //     if (CalibrationUtils::updateCameraInfo(calib_file, left_info, right_info)) {
-    //         left_info_manager_->setCameraInfo(left_info);
-    //         right_info_manager_->setCameraInfo(right_info);
-    //         RCLCPP_INFO(get_logger(), "Updated camera info from calibration file");
-    //     }
-    // }
+    std::string calib_file = this->declare_parameter("calibration_file", "");
+    calib_file = this->get_parameter("calibration_file").as_string();
+    if (!calib_file.empty()) {
+        sensor_msgs::msg::CameraInfo left_info, right_info;
+        // check if the content of the file is empty
+        std::ifstream file(calib_file);
+        std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+        left_info.width = width_;
+        left_info.height = height_;
+        right_info.width = width_;
+        right_info.height = height_;
+        if (CalibrationUtils::updateCameraInfo(calib_file, left_info, right_info)) {
+            left_info_manager_->setCameraInfo(left_info);
+            right_info_manager_->setCameraInfo(right_info);
+            RCLCPP_INFO(get_logger(), "Updated camera info from calibration file");
+        }
+    }
 
     // Instead of creating a timer, we'll use a flag to control the loop
     running_ = true;
@@ -217,14 +276,11 @@ void StereoNode::run() {
             cv::Mat left_frame, right_frame;
             
             // Capture images
-            // bool left_ok = left_cam_->getVideoFrame(left_frame, 100);  // 100ms timeout
-            // bool right_ok = right_cam_->getVideoFrame(right_frame, 100);  // 100ms timeout
-
             bool left_ok = left_cam_->getVideoFrame(left_frame, 100);  // 100ms timeout
             bool right_ok = right_cam_->getVideoFrame(right_frame, 100);  // 100ms timeout
 
             if (left_ok && right_ok) {
-                RCLCPP_INFO(this->get_logger(), "Publishing raw images - %ld", std::chrono::high_resolution_clock::now());
+                // RCLCPP_INFO(this->get_logger(), "Publishing raw images - %ld", std::chrono::high_resolution_clock::now());
                 publish_images(left_frame, right_frame);
             } else {
                 RCLCPP_WARN(this->get_logger(), "Failed to capture stereo images - Left: %d, Right: %d",

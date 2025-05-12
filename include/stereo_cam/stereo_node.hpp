@@ -36,6 +36,24 @@ struct CameraConfig {
     static const std::vector<Resolution> SUPPORTED_MODES;  // Declaration only
 };
 
+struct ArducamCameraConfig {
+    std::string format;
+    std::string port;
+    std::string device;
+    int width;
+    int height;
+    int fps;
+
+    bool operator==(const ArducamCameraConfig& other) const {
+        return format == other.format &&
+               port == other.port &&
+               device == other.device &&
+               width == other.width &&
+               height == other.height &&
+               fps == other.fps;
+    }
+};
+
 class StereoNode : public rclcpp::Node {
 public:
     explicit StereoNode(const rclcpp::NodeOptions& options, const std::string& name = "stereo_node");
@@ -75,6 +93,20 @@ private:
     int height_;
     int frame_rate_;
     std::string frame_id_;
+
+    std::string right_format_;
+    std::string right_port_;
+    std::string right_device_;
+
+    std::string left_format_;
+    std::string left_port_;
+    std::string left_device_;
+
+    ArducamCameraConfig left_config_;
+    ArducamCameraConfig right_config_;
+
+    std::string left_gst_str;
+    std::string right_gst_str;
 
     // IMU members
     std::unique_ptr<ICM20948> imu_;
