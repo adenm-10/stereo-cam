@@ -108,20 +108,6 @@ private:
     std::string left_gst_str;
     std::string right_gst_str;
 
-    // IMU members
-    std::unique_ptr<ICM20948> imu_;
-    rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
-    rclcpp::Publisher<sensor_msgs::msg::MagneticField>::SharedPtr mag_pub_;
-    rclcpp::TimerBase::SharedPtr imu_timer_;
-    
-    void imu_callback();
-    bool configure_imu();
-    
-    // IMU parameters
-    AccelRange accel_range_;
-    GyroRange gyro_range_;
-    int imu_rate_;
-
     // Camera info managers
     std::unique_ptr<camera_info_manager::CameraInfoManager> left_info_manager_;
     std::unique_ptr<camera_info_manager::CameraInfoManager> right_info_manager_;
@@ -134,7 +120,6 @@ private:
     // Add frame IDs as member variables
     std::string left_camera_frame_{"left_camera_frame"};
     std::string right_camera_frame_{"right_camera_frame"};
-    std::string imu_frame_{"imu_link"};
     double stereo_baseline_;
 
     // Add function declaration

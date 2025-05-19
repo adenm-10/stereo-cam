@@ -1,5 +1,5 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, SetLaunchConfiguration, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
 from launch.substitutions import LaunchConfiguration, Command
 from launch_ros.actions import Node
 from launch.substitutions import PathJoinSubstitution
@@ -7,6 +7,7 @@ from launch_ros.parameter_descriptions import ParameterValue
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch.conditions import IfCondition
+from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 def launch_setup(context, *args, **kwargs):
     pkg_dir = get_package_share_directory('stereo_cam')
@@ -18,6 +19,8 @@ def launch_setup(context, *args, **kwargs):
     # Determine which config to use based on 'use_raspi'
     use_raspi = LaunchConfiguration('use_raspi').perform(context)
     selected_config = raspi_config if use_raspi.lower() == 'true' else laptop_config
+
+    use_sim_time = LaunchConfiguration('use_sim_time')
 
     # Load URDF
     urdf_file = os.path.join(pkg_dir, 'urdf', 'stereo_camera.urdf.xacro')
@@ -34,7 +37,6 @@ def launch_setup(context, *args, **kwargs):
             parameters=[
                 selected_config,
                 {'robot_description': robot_description},
-                {'resolution_preset': LaunchConfiguration('resolution_preset')},
                 {'frame_rate': 30},
                 {'enable_depth': LaunchConfiguration('enable_depth')}
             ],
@@ -54,6 +56,20 @@ def launch_setup(context, *args, **kwargs):
             name='rviz2',
             output='screen',
             arguments=['-d', os.path.join(pkg_dir, 'config', 'stereo_cam.rviz')]
+        ),
+        
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution([
+                    get_package_share_directory('stereo_image_proc'),
+                    'launch',
+                    'stereo_image_proc.launch.py'
+                ])
+            ),
+            launch_arguments={
+                'namespace': 'camera'
+            }.items(),
+            condition=IfCondition(LaunchConfiguration('enable_rect'))
         )
     ]
 
@@ -70,14 +86,19 @@ def generate_launch_description():
             description='Enable depth estimation node'
         ),
         DeclareLaunchArgument(
+            'enable_rect',
+            default_value='false',
+            description='Enable stereo rectification node'
+        ),
+        DeclareLaunchArgument(
             'rviz',
             default_value='false',
             description='Whether to start RVIZ'
         ),
         DeclareLaunchArgument(
-            'resolution_preset',
-            default_value='1080p',
-            description='Resolution preset (full, 1080p, 720p, vga)'
+            'use_sim_time',
+            default_value='false',
+            description='Use simulation time if true'
         ),
         OpaqueFunction(function=launch_setup)
     ])
