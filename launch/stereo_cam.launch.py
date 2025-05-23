@@ -37,7 +37,6 @@ def launch_setup(context, *args, **kwargs):
             parameters=[
                 selected_config,
                 {'robot_description': robot_description},
-                {'frame_rate': 30},
                 {'enable_depth': LaunchConfiguration('enable_depth')}
             ],
             output='screen'
