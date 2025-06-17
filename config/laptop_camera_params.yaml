@@ -2,8 +2,12 @@ stereo_node:
   ros__parameters:
     enable_depth: false
 
-    image_width: 1920
-    image_height: 1080
+    # image_width: 1920
+    # image_height: 1080
+    # frame_rate: 30
+
+    image_width: 640
+    image_height: 360
     frame_rate: 30
     
     left_format: H264

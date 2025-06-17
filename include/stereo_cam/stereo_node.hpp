@@ -52,6 +52,16 @@ struct ArducamCameraConfig {
                height == other.height &&
                fps == other.fps;
     }
+
+    void print() const {
+        std::cout << "ArducamCameraConfig:" << std::endl;
+        std::cout << "  format: " << format << std::endl;
+        std::cout << "  port: " << port << std::endl;
+        std::cout << "  device: " << device << std::endl;
+        std::cout << "  width: " << width << std::endl;
+        std::cout << "  height: " << height << std::endl;
+        std::cout << "  fps: " << fps << std::endl;
+    }
 };
 
 class StereoNode : public rclcpp::Node {

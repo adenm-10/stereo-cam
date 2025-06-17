@@ -20,8 +20,6 @@ def launch_setup(context, *args, **kwargs):
     use_raspi = LaunchConfiguration('use_raspi').perform(context)
     selected_config = raspi_config if use_raspi.lower() == 'true' else laptop_config
 
-    use_sim_time = LaunchConfiguration('use_sim_time')
-
     # Load URDF
     urdf_file = os.path.join(pkg_dir, 'urdf', 'stereo_camera.urdf.xacro')
     robot_description = ParameterValue(
@@ -66,7 +64,7 @@ def launch_setup(context, *args, **kwargs):
                 ])
             ),
             launch_arguments={
-                'namespace': 'camera'
+                # 'namespace': 'camera'
             }.items(),
             condition=IfCondition(LaunchConfiguration('enable_rect'))
         )
@@ -86,7 +84,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'enable_rect',
-            default_value='false',
+            default_value='true',
             description='Enable stereo rectification node'
         ),
         DeclareLaunchArgument(

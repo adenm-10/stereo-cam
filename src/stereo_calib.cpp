@@ -51,8 +51,10 @@ public:
 		std::filesystem::create_directories(image_dir_);
 
 		// Set up synchronized subscribers
-		left_sub_.subscribe(this, "camera/left/image_raw");
-		right_sub_.subscribe(this, "camera/right/image_raw");
+		// left_sub_.subscribe(this, "camera/left/image_raw");
+		// right_sub_.subscribe(this, "camera/right/image_raw");
+		left_sub_.subscribe(this, "left/image_raw");
+		right_sub_.subscribe(this, "right/image_raw");
 
 		sync_ = std::make_shared<Synchronizer>(
 			SyncPolicy(10),
@@ -440,6 +442,18 @@ void StereoCalibration(std::vector<std::string>imagelist, int numCornersVer, int
 	
 	detector->detectAndCompute(rect1, cv::Mat(), keypoints1, descriptors1);
 	detector->detectAndCompute(rect2, cv::Mat(), keypoints2, descriptors2);
+
+	if (descriptors1.empty() || descriptors2.empty()) {
+		std::cerr << "[ERROR] One or both descriptor sets are empty!" << std::endl;
+		return;
+	}
+
+	if (descriptors1.type() != CV_32F) {
+		descriptors1.convertTo(descriptors1, CV_32F);
+	}
+	if (descriptors2.type() != CV_32F) {
+		descriptors2.convertTo(descriptors2, CV_32F);
+	}
 
 	// Match features
 	std::vector<cv::DMatch> good_matches;

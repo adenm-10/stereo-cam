@@ -102,6 +102,9 @@ StereoNode::StereoNode(const rclcpp::NodeOptions& options, const std::string& na
     left_config_ = {left_format_, left_port_, left_device_, width_, height_, frame_rate_};       
     right_config_ = {right_format_, right_port_, right_device_, width_, height_, frame_rate_};
 
+    left_config_.print();
+    right_config_.print();
+
     bool found_preset = false;
 
     for (const ArducamCameraConfig& mode : ARDUCAM_SUPPORTED_MODES) {
@@ -160,12 +163,12 @@ void StereoNode::on_configure() {
 void StereoNode::initialize() {
     // Create publishers
     it_ = std::make_shared<image_transport::ImageTransport>(shared_from_this());
-    left_pub_ = it_->advertise("camera/left/image_raw", 10);
-    right_pub_ = it_->advertise("camera/right/image_raw", 10);
+    left_pub_ = it_->advertise("left/image_raw", 10);
+    right_pub_ = it_->advertise("right/image_raw", 10);
 
     // Initialize camera info publishers
-    left_info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("camera/left/camera_info", 10);
-    right_info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("camera/right/camera_info", 10);
+    left_info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("left/camera_info", 10);
+    right_info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("right/camera_info", 10);
 
     // Initialize cameras
     if (left_config_.device == "Laptop" && right_config_.device == "Laptop") {
