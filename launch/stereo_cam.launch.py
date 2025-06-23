@@ -39,6 +39,7 @@ def launch_setup(context, *args, **kwargs):
             ],
             output='screen'
         ),
+
         Node(
             package='robot_state_publisher',
             executable='robot_state_publisher',
@@ -46,6 +47,7 @@ def launch_setup(context, *args, **kwargs):
             parameters=[{'robot_description': robot_description}],
             output='screen'
         ),
+        
         Node(
             package='rviz2',
             condition=IfCondition(LaunchConfiguration('rviz')),

@@ -69,7 +69,6 @@ target_link_libraries(cv_cam PUBLIC
 add_executable(stereo_node 
   src/main.cpp
   src/stereo_node.cpp
-  src/icm20948.cpp
   src/depth_node.cpp
   src/calib_utils.cpp
 )
@@ -97,15 +96,6 @@ target_link_libraries(stereo_node
   cv_cam
 )
 
-# mag_viz_node
-add_executable(mag_viz_node src/mag_viz_node.cpp)
-
-ament_target_dependencies(mag_viz_node
-  rclcpp
-  sensor_msgs
-  visualization_msgs
-)
-
 # stereo_calib executable
 add_executable(stereo_calib 
   src/stereo_calib.cpp
@@ -123,7 +113,6 @@ ament_target_dependencies(stereo_calib
 # Install targets
 install(TARGETS
   stereo_node
-  mag_viz_node
   stereo_calib
   lccv_core
   cv_cam
