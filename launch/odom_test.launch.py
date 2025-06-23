@@ -12,7 +12,7 @@ def generate_launch_description():
     pkg_dir = get_package_share_directory('stereo_cam')
 
     ekf_config_path = os.path.join(pkg_dir, 'config', 'ekf.yaml')
-    ekf_params = ParameterFile(ekf_config_path, value_type='yaml')
+    ekf_params = ParameterFile(ekf_config_path)
 
     return LaunchDescription([
 
