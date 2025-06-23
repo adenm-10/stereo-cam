@@ -27,4 +27,4 @@ rtabmap_odom:
 
     # Debug
     log_level: "info"
-    Rtabmap/PublishRAMUsage: true
+    # Rtabmap/PublishRAMUsage: true
