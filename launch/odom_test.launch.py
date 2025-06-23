@@ -11,8 +11,14 @@ from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
 def generate_launch_description():
     pkg_dir = get_package_share_directory('stereo_cam')
 
-    ekf_config_path = os.path.join(pkg_dir, 'config', 'ekf.yaml')
+    ekf_config_path = os.path.join(pkg_dir, 'config', 'odom', 'ekf.yaml')
     ekf_params = ParameterFile(ekf_config_path)
+
+    rtab_odom_config_path = os.path.join(pkg_dir, 'config', 'odom', 'rtab_odom.yaml')
+    rtab_odom_params = ParameterFile(rtab_odom_config_path)
+
+    mpu_imu_config_path = os.path.join(pkg_dir, 'config', 'odom', 'mpu_imu.yaml')
+    mpu_imu_params = ParameterFile(mpu_imu_config_path)
 
     return LaunchDescription([
 
@@ -25,13 +31,7 @@ def generate_launch_description():
             respawn=True,
             respawn_delay=4,
             emulate_tty=True,
-            parameters=[
-                {'calibrate': True },
-                {'gyro_range': 0 },     # Gyroscope range: 0 -> +-250°/s, 1 -> +-500°/s, 2 -> +-1000°/s, 3 -> +-2000°/s
-                {'accel_range': 0 },    # Acceleration range: 0 -> +-2g, 1 -> +-4g, 2 -> +-8g, 3 -> +-16g
-                {'dlpf_bandwidth': 2 },   # Digital low pass filter bandwidth [0-6]: 0 -> 260Hz, 1 -> 184Hz, 2 -> 94Hz, 3 -> 44Hz, 4 -> 21Hz, 5 -> 10Hz, 6 -> 5Hz
-                {'frequency': 100 }
-            ]
+            parameters=[mpu_imu_params]
         ),
 
         IncludeLaunchDescription(
@@ -54,13 +54,7 @@ def generate_launch_description():
             package='rtabmap_odom',
             executable='stereo_odometry',
             name='rtabmap_odom',
-            parameters=[{
-                'frame_id': 'base_link',
-                'odom_frame_id': 'odom',
-                'publish_tf': False,
-                'subscribe_imu': False,
-                'use_sim_time': False
-            }]
+            parameters=[rtab_odom_params]
         ),
 
         # 3. EKF Node from robot_localization

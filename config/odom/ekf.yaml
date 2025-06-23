@@ -1,7 +1,7 @@
 ekf_filter_node:
   ros__parameters:
-    frequency: 10.0
-    sensor_timeout: 0.1
+    frequency: 40.0 # 30–50 Hz to kepe up with 100 hz imu
+    sensor_timeout: 0.15 # Rule of thumb: sensor_timeout ≈ 2–3x max sensor period, cam running at 15 hz -> 0.067s period
     two_d_mode: true
 
     odom0: /odom
@@ -28,8 +28,8 @@ ekf_filter_node:
     publish_tf: true
 
 
-  # [ x,  y,  z,          # position
-  # roll, pitch, yaw,     # orientation
-  # vx, vy, vz,           # linear velocity
-  # vroll, vpitch, vyaw,  # angular velocity
-  # ax, ay, az ]          # linear acceleration
+  # [ x,  y,  z,          position
+  # roll, pitch, yaw,     orientation
+  # vx, vy, vz,           linear velocity
+  # vroll, vpitch, vyaw,  angular velocity
+  # ax, ay, az ]          linear acceleration

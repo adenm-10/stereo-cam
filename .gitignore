@@ -95,8 +95,8 @@ bag_files/
 *.bag
 
 # Custom camera calibration files
-*.yaml
-!config/*.yaml
+# *.yaml
+# !config/*.yaml
 
 # Documentation generated files
 doc/_build/

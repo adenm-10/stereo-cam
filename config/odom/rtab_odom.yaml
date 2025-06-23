@@ -1,0 +1,30 @@
+rtabmap_odom:
+  ros__parameters:
+    # Frames
+    frame_id: "base_link"
+    odom_frame_id: "odom"
+    publish_tf: true
+    use_sim_time: false
+
+    # IMU
+    subscribe_imu: false       # Set to true if you want IMU fusion in VO
+
+    # # Visual odometry estimation
+    # Vis/EstimationType: 0      # 3D-3D PnP
+    # Vis/MinInliers: 20         # Minimum inliers for valid VO update
+    # Vis/InlierDistance: 0.1    # Max acceptable 3D reprojection error [m]
+    # Vis/MaxDepth: 4.0          # Max stereo depth
+    # Vis/MinDepth: 0.1          # Min stereo depth
+    # Vis/MaxFeatures: 500       # Max features to track
+    # Vis/CorType: 0             # Feature matching: 0 = optical flow
+
+    # # Stereo image processing
+    # Stereo/Strategy: 1         # 1 = SGBM (semi-global block matching)
+    # Stereo/MaxDisparity: 128   # Larger for closer objects
+    # Stereo/MinDisparity: 0
+    # Stereo/WinSize: 5          # Matching window size (for BM/SGBM)
+    # Stereo/Eps: 0.0001         # SGBM termination criteria
+
+    # Debug
+    log_level: "info"
+    Rtabmap/PublishRAMUsage: true
