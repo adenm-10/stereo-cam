@@ -1,6 +1,3 @@
-from launch import LaunchDescription
-from launch_ros.actions import Node
-from launch.substitutions import ThisLaunchFileDir
 import os
 
 from launch import LaunchDescription
@@ -9,21 +6,13 @@ from launch.substitutions import PathJoinSubstitution, Command
 from launch_ros.actions import Node
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
-from launch_ros.parameter_descriptions import ParameterValue
+from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
 
 def generate_launch_description():
     pkg_dir = get_package_share_directory('stereo_cam')
 
-    config_path = os.path.join(
-        os.path.dirname(__file__), '../config/ekf.yaml'
-    )
-
-    # Load URDF
-    urdf_file = os.path.join(pkg_dir, 'urdf', 'stereo_camera.urdf.xacro')
-    robot_description = ParameterValue(
-        Command(['xacro ', urdf_file]),
-        value_type=str
-    )
+    ekf_config_path = os.path.join(pkg_dir, 'config', 'ekf.yaml')
+    ekf_params = ParameterFile(ekf_config_path, value_type='yaml')
 
     return LaunchDescription([
 
@@ -80,16 +69,7 @@ def generate_launch_description():
             executable='ekf_node',
             name='ekf_filter_node',
             output='screen',
-            parameters=[config_path]
-        ),
-
-        # 4. Transformation Publisher
-        Node(
-            package='robot_state_publisher',
-            executable='robot_state_publisher',
-            name='robot_state_publisher',
-            parameters=[{'robot_description': robot_description}],
-            output='screen'
+            parameters=[ekf_params]
         ),
 
         # # 4. RTAB-Map SLAM node
