@@ -24,7 +24,3 @@ rtabmap_odom:
     # Stereo/MinDisparity: 0
     # Stereo/WinSize: 5          # Matching window size (for BM/SGBM)
     # Stereo/Eps: 0.0001         # SGBM termination criteria
-
-    # Debug
-    log_level: "info"
-    # Rtabmap/PublishRAMUsage: true
