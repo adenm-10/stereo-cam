@@ -1,4 +1,4 @@
-mpu9250driver:
+mpu9250driver_node:
   ros__parameters:
     frequency: 100
 
