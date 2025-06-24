@@ -4,7 +4,7 @@ stereo_node:
 
     image_width: 640
     image_height: 360
-    frame_rate: 15
+    frame_rate: 10
 
     left_format: MJPG
     left_port: /dev/video0
@@ -30,5 +30,5 @@ stereo_node:
   
     stereo:
       baseline: 0.06  # 60mm between cameras
-      focal_length: 2822.10  # pixels
-      principal_point: [1640.0, 1232.0]  # pixels 
+      focal_length: 1428.0  # pixels
+      principal_point: [968.0, 548.5]  # pixels 

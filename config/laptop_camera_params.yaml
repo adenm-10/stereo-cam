@@ -34,5 +34,5 @@ stereo_node:
   
     stereo:
       baseline: 0.06  # 60mm between cameras
-      focal_length: 2822.10  # pixels
-      principal_point: [1640.0, 1232.0]  # pixels 
+      focal_length: 1428.0  # pixels
+      principal_point: [968.0, 548.5]  # pixels 
