@@ -11,7 +11,7 @@ from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
 def generate_launch_description():
     pkg_dir = get_package_share_directory('stereo_cam')
 
-    ekf_config_path = os.path.join(pkg_dir, 'config', 'odom', 'ekf.yaml')
+    ekf_config_path = os.path.join(pkg_dir, 'config', 'odom', 'ekf_test.yaml')
     ekf_params = ParameterFile(ekf_config_path)
 
     rtab_odom_config_path = os.path.join(pkg_dir, 'config', 'odom', 'rtab_odom.yaml')
