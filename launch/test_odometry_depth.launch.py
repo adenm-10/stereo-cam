@@ -52,8 +52,7 @@ def generate_launch_description():
         # 2. Stereo visual odometry
         Node(
             package='rtabmap_odom',
-            executable='rtabmap-odom',
-            name='rtabmap_odom',
+            executable='rgbd_odometry',
             output='screen',
             parameters=[{
                 'subscribe_depth': True,
@@ -67,7 +66,7 @@ def generate_launch_description():
                 'wait_imu_to_init': False,
             }],
             remappings=[
-                ('rgb/image', '/left/image_color'),
+                ('rgb/image', '/left/image_raw'),
                 ('depth/image', '/camera/depth/image_raw'),
                 ('rgb/camera_info', '/left/camera_info'),
             ]
