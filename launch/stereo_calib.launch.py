@@ -36,7 +36,7 @@ def generate_launch_description():
     stereo_node = Node(
         package='stereo_cam',
         executable='stereo_node',
-        parameters=[os.path.join(pkg_dir, 'config', 'camera_params.yaml')],
+        parameters=[os.path.join(pkg_dir, 'config', 'laptop_camera_params.yaml')],
         output='screen',
         arguments=['--use-intra-process-comms']
     )
