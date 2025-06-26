@@ -86,7 +86,7 @@ def generate_launch_description():
         ),
         DeclareLaunchArgument(
             'enable_rect',
-            default_value='true',
+            default_value='false',
             description='Enable stereo rectification node'
         ),
         DeclareLaunchArgument(

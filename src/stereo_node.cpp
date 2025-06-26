@@ -335,26 +335,26 @@ void StereoNode::publish_images(const cv::Mat& left_img, const cv::Mat& right_im
     sensor_msgs::msg::Image::SharedPtr left_msg = 
         cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", left_img).toImageMsg();
     left_msg->header.stamp = stamp;
-    left_msg->header.frame_id = left_camera_frame_;
+    left_msg->header.frame_id = left_camera_optical_frame_;
     left_pub_.publish(left_msg);
 
     // Get and publish left camera info
     sensor_msgs::msg::CameraInfo left_info = left_info_manager_->getCameraInfo();
     left_info.header.stamp = stamp;
-    left_info.header.frame_id = left_camera_frame_;
+    left_info.header.frame_id = left_camera_optical_frame_;
     left_info_pub_->publish(left_info);
 
     // Convert and publish right image
     sensor_msgs::msg::Image::SharedPtr right_msg = 
         cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", right_img).toImageMsg();
     right_msg->header.stamp = stamp;
-    right_msg->header.frame_id = right_camera_frame_;
+    right_msg->header.frame_id = right_camera_optical_frame_;
     right_pub_.publish(right_msg);
 
     // Get and publish right camera info
     sensor_msgs::msg::CameraInfo right_info = right_info_manager_->getCameraInfo();
     right_info.header.stamp = stamp;
-    right_info.header.frame_id = right_camera_frame_;
+    right_info.header.frame_id = right_camera_optical_frame_;
     right_info_pub_->publish(right_info);
 }
 

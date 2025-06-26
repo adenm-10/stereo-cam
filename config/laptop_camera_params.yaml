@@ -21,8 +21,8 @@ stereo_node:
     imu_rate: 100
     
     frame_id: "camera_link"
-    left_camera_frame: "left_camera_frame"
-    right_camera_frame: "right_camera_frame"
+    left_camera_optical_frame: "left_camera_optical_frame"
+    right_camera_optical_frame: "right_camera_optical_frame"
     imu_frame: "imu_link"
     exposure_mode: "normal"
     gain: 1.0

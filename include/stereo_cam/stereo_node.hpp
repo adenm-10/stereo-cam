@@ -128,8 +128,8 @@ private:
     std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
     
     // Add frame IDs as member variables
-    std::string left_camera_frame_{"left_camera_frame"};
-    std::string right_camera_frame_{"right_camera_frame"};
+    std::string left_camera_optical_frame_{"left_camera_optical_frame"};
+    std::string right_camera_optical_frame_{"right_camera_optical_frame"};
     double stereo_baseline_;
 
     // Add function declaration
