@@ -33,3 +33,4 @@ ekf_filter_node:
   # vx, vy, vz,           linear velocity
   # vroll, vpitch, vyaw,  angular velocity
   # ax, ay, az ]          linear acceleration
+  # x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az.

@@ -1,5 +1,6 @@
 rtabmap_odom:
   ros__parameters:
+  
     # Frames
     frame_id: "base_link"
     odom_frame_id: "odom"
@@ -8,6 +9,9 @@ rtabmap_odom:
 
     # IMU
     subscribe_imu: false       # Set to true if you want IMU fusion in VO
+
+    approx_sync: true
+    approx_sync_max_interval: 0.02
 
     # # Visual odometry estimation
     # Vis/EstimationType: 0      # 3D-3D PnP
