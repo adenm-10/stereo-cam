@@ -71,4 +71,13 @@ def generate_launch_description():
                 ('rgb/camera_info', '/left/camera_info'),
             ]
         ),
+
+        # 3. EKF Node from robot_localization
+        Node(
+            package='robot_localization',
+            executable='ekf_node',
+            name='ekf_filter_node',
+            output='screen',
+            parameters=[ekf_params]
+        ),
     ])

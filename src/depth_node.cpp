@@ -57,10 +57,10 @@ DepthNode::DepthNode(const rclcpp::NodeOptions& options, const std::string& name
     right_sub_.subscribe(this, "right/image_raw", rmw_qos_profile_sensor_data);
 
     // Create subscribers for camera info
-    left_info_sub_ = create_subscription<sensor_msgs::msg::CameraInfo>(
-        "left/camera_info", 
-        rclcpp::QoS(10).reliable(),
-        std::bind(&DepthNode::leftCameraInfoCallback, this, std::placeholders::_1));
+    // left_info_sub_ = create_subscription<sensor_msgs::msg::CameraInfo>(
+    //     "left/camera_info", 
+    //     rclcpp::QoS(10).reliable(),
+    //     std::bind(&DepthNode::leftCameraInfoCallback, this, std::placeholders::_1));
     
     right_info_sub_ = create_subscription<sensor_msgs::msg::CameraInfo>(
         "right/camera_info", 
