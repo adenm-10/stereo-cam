@@ -14,35 +14,35 @@
 # v4l2-ctl --set-ctrl=exposure_time_absolute=156
 # v4l2-ctl --set-ctrl=exposure_dynamic_framerate=0
 
-v4l2-ctl -d /dev/video0 --set-ctrl=brightness=10
-v4l2-ctl -d /dev/video0 --set-ctrl=contrast=50
+v4l2-ctl -d /dev/video0 --set-ctrl=brightness=64
+v4l2-ctl -d /dev/video0 --set-ctrl=contrast=64
 v4l2-ctl -d /dev/video0 --set-ctrl=saturation=0
 v4l2-ctl -d /dev/video0 --set-ctrl=hue=0
-v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_automatic=1
-v4l2-ctl -d /dev/video0 --set-ctrl=gamma=150
-v4l2-ctl -d /dev/video0 --set-ctrl=gain=30
+v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_automatic=0
+v4l2-ctl -d /dev/video0 --set-ctrl=gamma=85
+v4l2-ctl -d /dev/video0 --set-ctrl=gain=100
 v4l2-ctl -d /dev/video0 --set-ctrl=power_line_frequency=1
-# v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_temperature=4600
+v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_temperature=2800
 v4l2-ctl -d /dev/video0 --set-ctrl=sharpness=6
-v4l2-ctl -d /dev/video0 --set-ctrl=backlight_compensation=16
+v4l2-ctl -d /dev/video0 --set-ctrl=backlight_compensation=0
 v4l2-ctl -d /dev/video0 --set-ctrl=auto_exposure=1
 v4l2-ctl -d /dev/video0 --set-ctrl=exposure_time_absolute=50
 v4l2-ctl -d /dev/video0 --set-ctrl=exposure_dynamic_framerate=0
 
-v4l2-ctl -d /dev/video6 --set-ctrl=brightness=10
-v4l2-ctl -d /dev/video6 --set-ctrl=contrast=50
-v4l2-ctl -d /dev/video6 --set-ctrl=saturation=0
-v4l2-ctl -d /dev/video6 --set-ctrl=hue=0
-v4l2-ctl -d /dev/video6 --set-ctrl=white_balance_automatic=1
-v4l2-ctl -d /dev/video6 --set-ctrl=gamma=150
-v4l2-ctl -d /dev/video6 --set-ctrl=gain=30
-v4l2-ctl -d /dev/video6 --set-ctrl=power_line_frequency=1
-v4l2-ctl -d /dev/video6 --set-ctrl=white_balance_temperature=4600
-v4l2-ctl -d /dev/video6 --set-ctrl=sharpness=6
-v4l2-ctl -d /dev/video6 --set-ctrl=backlight_compensation=16
-v4l2-ctl -d /dev/video6 --set-ctrl=auto_exposure=1
-v4l2-ctl -d /dev/video6 --set-ctrl=exposure_time_absolute=50
-v4l2-ctl -d /dev/video6 --set-ctrl=exposure_dynamic_framerate=0
+v4l2-ctl -d /dev/video4 --set-ctrl=brightness=64
+v4l2-ctl -d /dev/video4 --set-ctrl=contrast=64
+v4l2-ctl -d /dev/video4 --set-ctrl=saturation=0
+v4l2-ctl -d /dev/video4 --set-ctrl=hue=0
+v4l2-ctl -d /dev/video4 --set-ctrl=white_balance_automatic=0
+v4l2-ctl -d /dev/video4 --set-ctrl=gamma=85
+v4l2-ctl -d /dev/video4 --set-ctrl=gain=100
+v4l2-ctl -d /dev/video4 --set-ctrl=power_line_frequency=1
+v4l2-ctl -d /dev/video4 --set-ctrl=white_balance_temperature=2800
+v4l2-ctl -d /dev/video4 --set-ctrl=sharpness=6
+v4l2-ctl -d /dev/video4 --set-ctrl=backlight_compensation=0
+v4l2-ctl -d /dev/video4 --set-ctrl=auto_exposure=1
+v4l2-ctl -d /dev/video4 --set-ctrl=exposure_time_absolute=50
+v4l2-ctl -d /dev/video4 --set-ctrl=exposure_dynamic_framerate=0
 
 
 #                      brightness 0x00980900 (int)    : min=-64 max=64 step=1 default=0 value=0
