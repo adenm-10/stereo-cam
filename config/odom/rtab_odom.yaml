@@ -4,7 +4,21 @@ rtabmap_odom:
     odom_frame_id: "odom"  # Output odometry frame
     subscribe_stereo: true
     approx_sync: true
-    queue_size: 30
+    approx_sync_max_interval: 0.005
+    queue_size: 10
+
+    # Odometry tuning
+    Vis/MinInliers: "15"
+    Odom/Strategy: "0"
+    Odom/MaxGuessDistance: "0.3"
+    StereoEgoMotion/MaxTranslation: "0.5"
+
+    Odom/FilteringStrategy: "1"
+    Odom/FilterSmoothFactor: "0.1"  # Higher trust in predicted motion
+    # Odom/GuessMotion: "true"        # Predict motion from past velocity
+
+    publish_tf: false
+    publish_null_when_lost: true
 
     # # Optional but useful for tuning
     # stereo_from_depth: false
@@ -16,5 +30,5 @@ rtabmap_odom:
     wait_imu_to_init: false  # set to true if using IMU initialization
 
     # Visualization/debugging
-    publish_tf: false
-    publish_null_when_lost: true
+    # publish_tf: false
+    # publish_null_when_lost: true

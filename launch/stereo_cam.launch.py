@@ -13,8 +13,8 @@ def launch_setup(context, *args, **kwargs):
     pkg_dir = get_package_share_directory('stereo_cam')
 
     # Config files
-    raspi_config = os.path.join(pkg_dir, 'config', 'raspi_camera_params.yaml')
-    laptop_config = os.path.join(pkg_dir, 'config', 'laptop_camera_params.yaml')
+    raspi_config = os.path.join(pkg_dir, 'config', 'cameras', 'raspi_camera_params.yaml')
+    laptop_config = os.path.join(pkg_dir, 'config', 'cameras', 'laptop_camera_params.yaml')
 
     # Determine which config to use based on 'use_raspi'
     use_raspi = LaunchConfiguration('use_raspi').perform(context)
