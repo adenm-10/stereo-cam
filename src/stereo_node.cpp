@@ -322,8 +322,8 @@ void StereoNode::initialize() {
 // }
 
 void StereoNode::run() {
-    auto period = std::chrono::microseconds(1000000 / frame_rate_);
-    int n = 5; // Publish every n-th frame, set this as needed
+    int n = 3; // Publish every n-th frame, set this as needed
+    auto period = std::chrono::microseconds(static_cast<int>(1e6 / (static_cast<double>(frame_rate_) / n)));
     int frame_counter = 0;
 
     std::thread capture_thread([this, period, n, frame_counter]() mutable {
@@ -342,11 +342,7 @@ void StereoNode::run() {
             auto dt_total = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t0).count();
 
             if (left_ok && right_ok) {
-                frame_counter++;
-                if (frame_counter >= n) {
-                    publish_images(left_frame, right_frame);
-                    frame_counter = 0;
-                }
+                publish_images(left_frame, right_frame);
             } else {
                 RCLCPP_WARN(this->get_logger(), "Failed to capture stereo images - Left: %d, Right: %d",
                     left_ok, right_ok);
