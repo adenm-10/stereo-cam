@@ -37,7 +37,7 @@ v4l2-ctl -d /dev/video6 --set-ctrl=white_balance_automatic=1
 v4l2-ctl -d /dev/video6 --set-ctrl=gamma=150
 v4l2-ctl -d /dev/video6 --set-ctrl=gain=30
 v4l2-ctl -d /dev/video6 --set-ctrl=power_line_frequency=1
-# v4l2-ctl -d /dev/video6 --set-ctrl=white_balance_temperature=4600
+v4l2-ctl -d /dev/video6 --set-ctrl=white_balance_temperature=4600
 v4l2-ctl -d /dev/video6 --set-ctrl=sharpness=6
 v4l2-ctl -d /dev/video6 --set-ctrl=backlight_compensation=16
 v4l2-ctl -d /dev/video6 --set-ctrl=auto_exposure=1

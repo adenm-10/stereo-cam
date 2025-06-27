@@ -25,7 +25,7 @@ def generate_launch_description():
                 ])
             ),
             launch_arguments={
-                'use_raspi': 'true',
+                'use_raspi': 'false',
                 'enable_depth': 'false',
                 'enable_rect': 'true',
             }.items()
