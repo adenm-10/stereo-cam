@@ -271,7 +271,8 @@ void StereoNode::initialize() {
 }
 
 void StereoNode::run() {
-    auto period = std::chrono::microseconds(1000000 / frame_rate_);
+    // auto period = std::chrono::microseconds(1000000 / frame_rate_);
+    auto period = std::chrono::microseconds(1000000 / 10);
     // auto next_capture = std::chrono::steady_clock::now();
 
     // Create a separate thread for camera capture
