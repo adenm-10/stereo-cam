@@ -23,9 +23,9 @@ stereo_node:
     exposure_mode: "normal"
     gain: 1.0
     exposure_time: 0  # 0 for auto
-    left_camera_info_url: "package://stereo_cam/config/left_camera_info.yaml"
-    right_camera_info_url: "package://stereo_cam/config/right_camera_info.yaml"
-    calibration_file: "package://stereo_cam/config/StereoCalibration_6_26.yaml"
+    left_camera_info_url: "package://stereo_cam/config/cameras/left_camera_info.yaml"
+    right_camera_info_url: "package://stereo_cam/config/cameras/right_camera_info.yaml"
+    calibration_file: "package://stereo_cam/config/cameras/StereoCalibration_6_27.yaml"
 
   
     stereo:
