@@ -271,9 +271,7 @@ void StereoNode::initialize() {
 }
 
 void StereoNode::run() {
-    // auto period = std::chrono::microseconds(1000000 / frame_rate_);
-    auto period = std::chrono::microseconds(1000000 / 10);
-    // auto next_capture = std::chrono::steady_clock::now();
+    auto period = std::chrono::microseconds(1000000 / frame_rate_);
 
     // Create a separate thread for camera capture
     std::thread capture_thread([this, period]() {
@@ -323,49 +321,6 @@ void StereoNode::run() {
     // Detach the thread so it runs independently
     capture_thread.detach();
 }
-
-// void StereoNode::run() {
-//     int n = 3; // Publish every n-th frame, set this as needed
-//     auto period = std::chrono::microseconds(1000000 / frame_rate_);
-//     int frame_counter = 0;
-
-//     std::thread capture_thread([this, period, n, frame_counter]() mutable {
-//         while (running_ && rclcpp::ok()) {
-//             auto start = std::chrono::high_resolution_clock::now();
-//             cv::Mat left_frame, right_frame;
-
-//             auto t0 = std::chrono::high_resolution_clock::now();
-//             bool left_ok = left_cam_->getVideoFrame(left_frame, 100);
-//             auto t1 = std::chrono::high_resolution_clock::now();
-//             bool right_ok = right_cam_->getVideoFrame(right_frame, 100);
-//             auto t2 = std::chrono::high_resolution_clock::now();
-
-//             auto dt_left = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-//             auto dt_right = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-//             auto dt_total = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t0).count();
-
-//             if (left_ok && right_ok) {
-//                 frame_counter++;
-//                 if (frame_counter >= n) {
-//                     publish_images(left_frame, right_frame);
-//                     frame_counter = 0;
-//                 }
-//             } else {
-//                 RCLCPP_WARN(this->get_logger(), "Failed to capture stereo images - Left: %d, Right: %d",
-//                     left_ok, right_ok);
-//             }
-
-//             auto end = std::chrono::high_resolution_clock::now();
-//             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-
-//             if (duration < period) {
-//                 std::this_thread::sleep_for(period - duration);
-//             }
-//         }
-//     });
-
-//     capture_thread.detach();
-// }
 
 StereoNode::~StereoNode() {
     running_ = false;

@@ -6,8 +6,8 @@ stereo_node:
     # image_height: 1080
     # frame_rate: 30
 
-    image_width: 1280
-    image_height: 720
+    image_width: 640
+    image_height: 360
     frame_rate: 30
     
     left_format: H264
@@ -29,7 +29,7 @@ stereo_node:
     exposure_time: 0  # 0 for auto
     left_camera_info_url: "package://stereo_cam/config/cameras/left_camera_info.yaml"
     right_camera_info_url: "package://stereo_cam/config/cameras/right_camera_info.yaml"
-    # calibration_file: "package://stereo_cam/config/cameras/StereoCalibration_6_27_1280.yaml"
+    calibration_file: "package://stereo_cam/config/cameras/StereoCalibration_6_27.yaml"
 
   
     stereo:
