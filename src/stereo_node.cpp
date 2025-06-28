@@ -344,7 +344,7 @@ void StereoNode::publish_images(const cv::Mat& left_img, const cv::Mat& right_im
 
     // --- Left image ---
     header.frame_id = left_camera_optical_frame_;
-    auto left_msg = cv_bridge::CvImage(header, "bgr8", left_img).toImageMsg();
+    auto left_msg = cv_bridge::CvImage(header, "mono8", left_img).toImageMsg();
     left_pub_.publish(left_msg);
 
     // Left camera info
@@ -356,7 +356,7 @@ void StereoNode::publish_images(const cv::Mat& left_img, const cv::Mat& right_im
 
     // --- Right image ---
     header.frame_id = right_camera_optical_frame_;
-    auto right_msg = cv_bridge::CvImage(header, "bgr8", right_img).toImageMsg();
+    auto right_msg = cv_bridge::CvImage(header, "mono8", right_img).toImageMsg();
     right_pub_.publish(right_msg);
 
     // Right camera info

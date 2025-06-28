@@ -121,8 +121,8 @@ private:
 		const sensor_msgs::msg::Image::ConstSharedPtr& right_msg)
 	{
 		try {
-			left_image_ = cv_bridge::toCvShare(left_msg, "bgr8")->image;
-			right_image_ = cv_bridge::toCvShare(right_msg, "bgr8")->image;
+			left_image_ = cv_bridge::toCvShare(left_msg, "mono8")->image;
+			right_image_ = cv_bridge::toCvShare(right_msg, "mono8")->image;
 
 			cv::Mat stereo_image;
 			cv::hconcat(left_image_, right_image_, stereo_image);
