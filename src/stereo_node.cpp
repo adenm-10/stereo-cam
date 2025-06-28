@@ -301,14 +301,14 @@ void StereoNode::run() {
             auto dt_loop_total = std::chrono::duration_cast<std::chrono::milliseconds>(t_after - start).count();
 
             // Timing logs
-            RCLCPP_INFO(this->get_logger(),
-                "Parallel capture done. Left OK: %d, Right OK: %d, Loop total: %ld ms",
-                left_ok, right_ok, dt_loop_total);
+            // RCLCPP_INFO(this->get_logger(),
+            //     "Parallel capture done. Left OK: %d, Right OK: %d, Loop total: %ld ms",
+            //     left_ok, right_ok, dt_loop_total);
 
-            // Also log stamps (as floating point seconds for easy reading)
-            RCLCPP_INFO(this->get_logger(),
-                "Stamps - Left: %.6f, Right: %.6f",
-                stamp_left.seconds(), stamp_right.seconds());
+            // // Also log stamps (as floating point seconds for easy reading)
+            // RCLCPP_INFO(this->get_logger(),
+            //     "Stamps - Left: %.6f, Right: %.6f",
+            //     stamp_left.seconds(), stamp_right.seconds());
 
             if (left_ok && right_ok) {
                 publish_images(left_frame, right_frame, stamp_left, stamp_right);
