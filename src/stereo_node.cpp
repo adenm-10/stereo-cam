@@ -277,47 +277,50 @@ void StereoNode::run() {
     std::thread capture_thread([this, period]() {
         while (running_ && rclcpp::ok()) {
             auto start = std::chrono::steady_clock::now();
+
             cv::Mat left_frame, right_frame;
-            
-            // Capture left
-            auto t0 = std::chrono::steady_clock::now();
-            bool left_ok = left_cam_->getVideoFrame(left_frame, 100);
-            auto t1 = std::chrono::steady_clock::now();
-            auto stamp_left = this->now();
-            
-            // Capture right
-            bool right_ok = right_cam_->getVideoFrame(right_frame, 100);
-            auto t2 = std::chrono::steady_clock::now();
-            auto stamp_right = this->now();
-            
-            // Calculate timing durations
-            auto dt_left_capture = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-            auto dt_right_capture = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-            auto dt_total = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t0).count();
-            auto dt_loop_total = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - start).count();
-            
-            // Log timing
+            bool left_ok = false, right_ok = false;
+            rclcpp::Time stamp_left, stamp_right;
+
+            // Launch parallel capture threads
+            std::thread left_thread([&]() {
+                left_ok = left_cam_->getVideoFrame(left_frame, 100);
+                stamp_left = this->now();
+            });
+
+            std::thread right_thread([&]() {
+                right_ok = right_cam_->getVideoFrame(right_frame, 100);
+                stamp_right = this->now();
+            });
+
+            left_thread.join();
+            right_thread.join();
+
+            // Timing after both captures
+            auto t_after = std::chrono::steady_clock::now();
+            auto dt_loop_total = std::chrono::duration_cast<std::chrono::milliseconds>(t_after - start).count();
+
+            // Timing logs
             RCLCPP_INFO(this->get_logger(),
-                "Timing (ms) - Left cap: %ld | Right cap: %ld | Total cap: %ld | Loop total: %ld",
-                dt_left_capture, dt_right_capture, dt_total, dt_loop_total);
-            
+                "Parallel capture done. Left OK: %d, Right OK: %d, Loop total: %ld ms",
+                left_ok, right_ok, dt_loop_total);
+
+            // Also log stamps (as floating point seconds for easy reading)
+            RCLCPP_INFO(this->get_logger(),
+                "Stamps - Left: %.6f, Right: %.6f",
+                stamp_left.seconds(), stamp_right.seconds());
+
             if (left_ok && right_ok) {
                 publish_images(left_frame, right_frame, stamp_left, stamp_right);
             } else {
-                RCLCPP_WARN(this->get_logger(), "Failed to capture stereo images - Left: %d, Right: %d",
-                    left_ok, right_ok);
+                RCLCPP_WARN(this->get_logger(),
+                    "Failed to capture stereo images - Left: %d, Right: %d", left_ok, right_ok);
             }
-            
-            // Optional: measure remaining processing after publish, if you want even more detail
+
             auto end = std::chrono::steady_clock::now();
-            auto dt_full = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
-            
-            RCLCPP_INFO(this->get_logger(),
-                "Loop finished. Total full loop time: %ld ms", dt_full);
-            
 
             // RCLCPP_INFO(get_logger(), "Frame Processed");
-
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
             if (duration < period) {
                 std::this_thread::sleep_for(period - duration);
             }
@@ -333,6 +336,8 @@ StereoNode::~StereoNode() {
 }
 
 void StereoNode::publish_images(const cv::Mat& left_img, const cv::Mat& right_img, rclcpp::Time stamp_left, rclcpp::Time stamp_right) {
+    
+    
     // Create a single header to reuse
     std_msgs::msg::Header header;
     header.stamp = stamp_left;

@@ -11,7 +11,6 @@ Arducam::Arducam(const std::string& pipeline)
     if (!cap.isOpened()) {
         throw std::runtime_error("Failed to open pipeline: " + pipeline);
     }
-    cap.set(cv::CAP_PROP_BUFFERSIZE, 1);
 }
 
 Arducam::~Arducam() {
