@@ -4,8 +4,8 @@ rtabmap_odom:
     odom_frame_id: "odom"  # Output odometry frame
     subscribe_stereo: true
     approx_sync: true
-    approx_sync_max_interval: 0.01
-    queue_size: 10
+    queue_size: 3
+    approx_sync_max_interval: 0.02
 
     # Odometry tuning
     Vis/MinInliers: "20"
