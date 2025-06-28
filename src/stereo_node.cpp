@@ -280,20 +280,14 @@ void StereoNode::run() {
             cv::Mat left_frame, right_frame;
             
             // Capture images
-            auto t0 = std::chrono::high_resolution_clock::now();
             bool left_ok = left_cam_->getVideoFrame(left_frame, 100);
-            auto t1 = std::chrono::high_resolution_clock::now();
+            auto stamp_left = this->now();
             bool right_ok = right_cam_->getVideoFrame(right_frame, 100);
-            auto t2 = std::chrono::high_resolution_clock::now();
-
-            auto dt_left = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-            auto dt_right = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-            auto dt_total = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t0).count();
-            
+            auto stamp_right = this->now();
 
             if (left_ok && right_ok) {
                 // RCLCPP_INFO(this->get_logger(), "Publishing raw images - %ld", std::chrono::high_resolution_clock::now());
-                publish_images(left_frame, right_frame);
+                publish_images(left_frame, right_frame, stamp_left, stamp_right);
             } else {
                 RCLCPP_WARN(this->get_logger(), "Failed to capture stereo images - Left: %d, Right: %d",
                     left_ok, right_ok);
@@ -319,36 +313,31 @@ StereoNode::~StereoNode() {
     running_ = false;
 }
 
-void StereoNode::publish_images(const cv::Mat& left_img, const cv::Mat& right_img) {
-    auto stamp = this->now();
+void StereoNode::publish_images(const cv::Mat& left_img, const cv::Mat& right_img, rclcpp::Time stamp_left, rclcpp::Time stamp_right) {
+    // Create a single header to reuse
+    std_msgs::msg::Header header;
+    header.stamp = stamp_left;
 
-    // std::cout << "left_bgr: channels = " << left_img.channels()
-    //       << ", step = " << left_img.step << std::endl;
-    
-    // Convert and publish left image
-    sensor_msgs::msg::Image::SharedPtr left_msg = 
-        cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", left_img).toImageMsg();
-    left_msg->header.stamp = stamp;
-    left_msg->header.frame_id = left_camera_optical_frame_;
+    // --- Left image ---
+    header.frame_id = left_camera_optical_frame_;
+    auto left_msg = cv_bridge::CvImage(header, "bgr8", left_img).toImageMsg();
     left_pub_.publish(left_msg);
 
-    // Get and publish left camera info
+    // Left camera info
     sensor_msgs::msg::CameraInfo left_info = left_info_manager_->getCameraInfo();
-    left_info.header.stamp = stamp;
-    left_info.header.frame_id = left_camera_optical_frame_;
+    left_info.header = header;
     left_info_pub_->publish(left_info);
 
-    // Convert and publish right image
-    sensor_msgs::msg::Image::SharedPtr right_msg = 
-        cv_bridge::CvImage(std_msgs::msg::Header(), "bgr8", right_img).toImageMsg();
-    right_msg->header.stamp = stamp;
-    right_msg->header.frame_id = right_camera_optical_frame_;
+    header.stamp = stamp_right;
+
+    // --- Right image ---
+    header.frame_id = right_camera_optical_frame_;
+    auto right_msg = cv_bridge::CvImage(header, "bgr8", right_img).toImageMsg();
     right_pub_.publish(right_msg);
 
-    // Get and publish right camera info
+    // Right camera info
     sensor_msgs::msg::CameraInfo right_info = right_info_manager_->getCameraInfo();
-    right_info.header.stamp = stamp;
-    right_info.header.frame_id = right_camera_optical_frame_;
+    right_info.header = header;
     right_info_pub_->publish(right_info);
 }
 

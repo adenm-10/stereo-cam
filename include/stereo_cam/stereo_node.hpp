@@ -76,7 +76,7 @@ public:
 private:
     void timer_callback();
     void configure_cameras();
-    void publish_images(const cv::Mat& left_img, const cv::Mat& right_img);
+    void publish_images(const cv::Mat& left_img, const cv::Mat& right_img, rclcpp::Time stamp_left, rclcpp::Time stamp_right);
 
     // Camera instances
     // std::unique_ptr<lccv::PiCamera> left_cam_;
