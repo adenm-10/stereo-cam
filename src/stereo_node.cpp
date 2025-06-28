@@ -276,26 +276,45 @@ void StereoNode::run() {
     // Create a separate thread for camera capture
     std::thread capture_thread([this, period]() {
         while (running_ && rclcpp::ok()) {
-            auto start = std::chrono::high_resolution_clock::now();
+            auto start = std::chrono::steady_clock::now();
             cv::Mat left_frame, right_frame;
             
-            // Capture images
+            // Capture left
+            auto t0 = std::chrono::steady_clock::now();
             bool left_ok = left_cam_->getVideoFrame(left_frame, 100);
+            auto t1 = std::chrono::steady_clock::now();
             auto stamp_left = this->now();
+            
+            // Capture right
             bool right_ok = right_cam_->getVideoFrame(right_frame, 100);
+            auto t2 = std::chrono::steady_clock::now();
             auto stamp_right = this->now();
-
+            
+            // Calculate timing durations
+            auto dt_left_capture = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+            auto dt_right_capture = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+            auto dt_total = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t0).count();
+            auto dt_loop_total = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - start).count();
+            
+            // Log timing
+            RCLCPP_INFO(this->get_logger(),
+                "Timing (ms) - Left cap: %ld | Right cap: %ld | Total cap: %ld | Loop total: %ld",
+                dt_left_capture, dt_right_capture, dt_total, dt_loop_total);
+            
             if (left_ok && right_ok) {
-                // RCLCPP_INFO(this->get_logger(), "Publishing raw images - %ld", std::chrono::high_resolution_clock::now());
                 publish_images(left_frame, right_frame, stamp_left, stamp_right);
             } else {
                 RCLCPP_WARN(this->get_logger(), "Failed to capture stereo images - Left: %d, Right: %d",
                     left_ok, right_ok);
             }
-
-            // Sleep until next capture time
-            auto end = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+            
+            // Optional: measure remaining processing after publish, if you want even more detail
+            auto end = std::chrono::steady_clock::now();
+            auto dt_full = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+            
+            RCLCPP_INFO(this->get_logger(),
+                "Loop finished. Total full loop time: %ld ms", dt_full);
+            
 
             // RCLCPP_INFO(get_logger(), "Frame Processed");
 
