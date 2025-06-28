@@ -290,13 +290,6 @@ void StereoNode::run() {
             auto dt_right = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
             auto dt_total = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t0).count();
             
-            // if (dt_total > 5) {
-            //     continue;
-            // }
-            
-            // RCLCPP_INFO(this->get_logger(),
-            //     "Left: %ld ms | Right: %ld ms | Total: %ld ms",
-            //     dt_left, dt_right, dt_total);
 
             if (left_ok && right_ok) {
                 // RCLCPP_INFO(this->get_logger(), "Publishing raw images - %ld", std::chrono::high_resolution_clock::now());

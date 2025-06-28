@@ -20,27 +20,32 @@ Arducam::~Arducam() {
     cap.release();
 }
 
+// bool Arducam::getVideoFrame(cv::Mat &frame, unsigned int timeout_ms)
+// {
+//     if (!running.load(std::memory_order_acquire))
+//         return false;
+
+//     auto start_time = std::chrono::high_resolution_clock::now();
+//     bool timeout_reached = false;
+//     timespec req = {0, 1000000};  // Sleep 1ms
+
+//     while (!timeout_reached) {
+//         if (cap.read(frame)) {
+//             return true;
+//         }
+
+//         nanosleep(&req, nullptr);
+
+//         timeout_reached = (std::chrono::high_resolution_clock::now() - start_time >
+//                            std::chrono::milliseconds(timeout_ms));
+//     }
+
+//     return false; // Timeout occurred
+// }
+
 bool Arducam::getVideoFrame(cv::Mat &frame, unsigned int timeout_ms)
 {
-    if (!running.load(std::memory_order_acquire))
-        return false;
-
-    auto start_time = std::chrono::high_resolution_clock::now();
-    bool timeout_reached = false;
-    timespec req = {0, 1000000};  // Sleep 1ms
-
-    while (!timeout_reached) {
-        if (cap.read(frame)) {
-            return true;
-        }
-
-        nanosleep(&req, nullptr);
-
-        timeout_reached = (std::chrono::high_resolution_clock::now() - start_time >
-                           std::chrono::milliseconds(timeout_ms));
-    }
-
-    return false; // Timeout occurred
+    return cap.read(frame);
 }
 
 // void Arducam::captureLoop(cv::VideoCapture& cap,
