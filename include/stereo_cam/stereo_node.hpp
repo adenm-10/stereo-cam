@@ -22,11 +22,11 @@ namespace stereo_cam {
 struct CameraConfig {
     static constexpr int MAX_WIDTH = 3280;
     static constexpr int MAX_HEIGHT = 2464;
-    static constexpr double FOCAL_LENGTH = 2.6; // mm
-    static constexpr double BASELINE = 0.06; // meters (60mm)
-    static constexpr double FOV_H = 73.0; // degrees
-    static constexpr double FOV_V = 50.0; // degrees
-    
+    static constexpr double FOCAL_LENGTH = 4.0; // mm
+    static constexpr double BASELINE = 0.1524; // meters (60mm)
+    static constexpr double FOV_H = 71.0; // degrees
+    static constexpr double FOV_V = 55.0; // degrees
+
     struct Resolution {
         int width;
         int height;
@@ -78,9 +78,6 @@ private:
     void configure_cameras();
     void publish_images(const cv::Mat& left_img, const cv::Mat& right_img, rclcpp::Time stamp_left, rclcpp::Time stamp_right);
 
-    // Camera instances
-    // std::unique_ptr<lccv::PiCamera> left_cam_;
-    // std::unique_ptr<lccv::PiCamera> right_cam_;
     std::unique_ptr<cv_cam::Arducam> left_cam_;
     std::unique_ptr<cv_cam::Arducam> right_cam_;
 
@@ -123,17 +120,10 @@ private:
     std::unique_ptr<camera_info_manager::CameraInfoManager> right_info_manager_;
     std::string left_camera_info_url_;
     std::string right_camera_info_url_;
-
-    // Add broadcaster
-    std::shared_ptr<tf2_ros::StaticTransformBroadcaster> static_tf_broadcaster_;
     
     // Add frame IDs as member variables
     std::string left_camera_optical_frame_{"left_camera_optical_frame"};
     std::string right_camera_optical_frame_{"right_camera_optical_frame"};
-    double stereo_baseline_;
-
-    // Add function declaration
-    void setup_static_transforms();
 
     // Add to member variables
     bool enable_depth_;
