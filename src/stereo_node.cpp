@@ -163,12 +163,12 @@ void StereoNode::on_configure() {
 void StereoNode::initialize() {
     // Create publishers
     it_ = std::make_shared<image_transport::ImageTransport>(shared_from_this());
-    left_pub_ = it_->advertise("left/image_raw", 10);
-    right_pub_ = it_->advertise("right/image_raw", 10);
+    left_pub_ = it_->advertise("left/image_raw", 0);
+    right_pub_ = it_->advertise("right/image_raw", 0);
 
     // Initialize camera info publishers
-    left_info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("left/camera_info", 10);
-    right_info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("right/camera_info", 10);
+    left_info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("left/camera_info", 0);
+    right_info_pub_ = this->create_publisher<sensor_msgs::msg::CameraInfo>("right/camera_info", 0);
 
     // Initialize cameras
     if (left_config_.device == "Laptop" && right_config_.device == "Laptop") {
@@ -282,47 +282,34 @@ void StereoNode::run() {
             bool left_ok = false, right_ok = false;
             rclcpp::Time stamp_left, stamp_right;
 
-            // Launch parallel capture threads
-            std::thread left_thread([&]() {
-                left_ok = left_cam_->getVideoFrame(left_frame, 100);
-                stamp_left = this->now();
-            });
+            left_ok = left_cam_->getVideoFrame(left_frame, 100);
+            stamp_left = this->now();
 
-            std::thread right_thread([&]() {
-                right_ok = right_cam_->getVideoFrame(right_frame, 100);
-                stamp_right = this->now();
-            });
-
-            left_thread.join();
-            right_thread.join();
-
+            right_ok = right_cam_->getVideoFrame(right_frame, 100);
+            stamp_right = this->now();
+            
+            /*
             // Timing after both captures
             auto t_after = std::chrono::steady_clock::now();
             auto dt_loop_total = std::chrono::duration_cast<std::chrono::milliseconds>(t_after - start).count();
-
+            
             // Timing logs
-            // RCLCPP_INFO(this->get_logger(),
-            //     "Parallel capture done. Left OK: %d, Right OK: %d, Loop total: %ld ms",
-            //     left_ok, right_ok, dt_loop_total);
-
-            // // Also log stamps (as floating point seconds for easy reading)
-            // RCLCPP_INFO(this->get_logger(),
-            //     "Stamps - Left: %.6f, Right: %.6f",
-            //     stamp_left.seconds(), stamp_right.seconds());
-
+            RCLCPP_INFO(this->get_logger(),
+            "Parallel capture done. Left OK: %d, Right OK: %d, Loop total: %ld ms",
+            left_ok, right_ok, dt_loop_total);
+            
+            // Also log stamps (as floating point seconds for easy reading)
+            RCLCPP_INFO(this->get_logger(),
+            "Stamps - Left: %.6f, Right: %.6f",
+            stamp_left.seconds(), stamp_right.seconds());
+            */
+            
+            
             if (left_ok && right_ok) {
                 publish_images(left_frame, right_frame, stamp_left, stamp_right);
             } else {
                 RCLCPP_WARN(this->get_logger(),
                     "Failed to capture stereo images - Left: %d, Right: %d", left_ok, right_ok);
-            }
-
-            auto end = std::chrono::steady_clock::now();
-
-            // RCLCPP_INFO(get_logger(), "Frame Processed");
-            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-            if (duration < period) {
-                std::this_thread::sleep_for(period - duration);
             }
         }
     });
@@ -337,31 +324,29 @@ StereoNode::~StereoNode() {
 
 void StereoNode::publish_images(const cv::Mat& left_img, const cv::Mat& right_img, rclcpp::Time stamp_left, rclcpp::Time stamp_right) {
     
-    
     // Create a single header to reuse
-    std_msgs::msg::Header header;
-    header.stamp = stamp_left;
+    std_msgs::msg::Header header_left;
+    header_left.stamp = stamp_left;
 
     // --- Left image ---
-    header.frame_id = left_camera_optical_frame_;
-    auto left_msg = cv_bridge::CvImage(header, "mono8", left_img).toImageMsg();
+    header_left.frame_id = left_camera_optical_frame_;
+    auto left_msg = cv_bridge::CvImage(header_left, "bgr8", left_img).toImageMsg();
     left_pub_.publish(left_msg);
 
     // Left camera info
     sensor_msgs::msg::CameraInfo left_info = left_info_manager_->getCameraInfo();
-    left_info.header = header;
+    left_info.header = header_left;
     left_info_pub_->publish(left_info);
 
-    header.stamp = stamp_right;
-
     // --- Right image ---
-    header.frame_id = right_camera_optical_frame_;
-    auto right_msg = cv_bridge::CvImage(header, "mono8", right_img).toImageMsg();
+    std_msgs::msg::Header header_right;
+    header_right.stamp = stamp_right;
+    header_right.frame_id = right_camera_optical_frame_;
+    auto right_msg = cv_bridge::CvImage(header_right, "bgr8", right_img).toImageMsg();
     right_pub_.publish(right_msg);
 
-    // Right camera info
     sensor_msgs::msg::CameraInfo right_info = right_info_manager_->getCameraInfo();
-    right_info.header = header;
+    right_info.header = header_right;
     right_info_pub_->publish(right_info);
 }
 

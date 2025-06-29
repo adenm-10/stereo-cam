@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="stereo_camera">
 
   <xacro:property name="M_PI" value="3.1415926535897931" />
-  <xacro:property name="baseline" value="0.06" /> <!-- 60mm -->
+  <xacro:property name="baseline" value="0.0152" /> <!-- 60mm -->
   <xacro:property name="camera_width" value="0.085" /> <!-- 85mm -->
   <xacro:property name="camera_height" value="0.024" /> <!-- 24mm -->
   

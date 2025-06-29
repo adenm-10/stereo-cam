@@ -9,6 +9,10 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
+  <!-- Point Cloud Library Dependencies-->
+  <depend>pcl_conversions</depend>
+  <depend>pcl_msgs</depend>
+
   <!-- Core ROS Dependencies -->
   <depend>rclcpp</depend>
   <depend>rclcpp_components</depend>

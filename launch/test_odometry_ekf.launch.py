@@ -23,16 +23,16 @@ def generate_launch_description():
     return LaunchDescription([
 
         # Drivers
-        Node(
-            package='mpu9250driver',
-            executable='mpu9250driver',
-            name='mpu9250driver_node',
-            output='screen',
-            respawn=True,
-            respawn_delay=4,
-            emulate_tty=True,
-            parameters=[mpu_imu_params]
-        ),
+        # Node(
+        #     package='mpu9250driver',
+        #     executable='mpu9250driver',
+        #     name='mpu9250driver_node',
+        #     output='screen',
+        #     respawn=True,
+        #     respawn_delay=4,
+        #     emulate_tty=True,
+        #     parameters=[mpu_imu_params]
+        # ),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(

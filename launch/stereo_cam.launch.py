@@ -69,14 +69,14 @@ def launch_setup(context, *args, **kwargs):
                 # 'namespace': 'camera'
             }.items(),
             condition=IfCondition(LaunchConfiguration('enable_rect'))
-        )
+        ),
     ]
 
 def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_raspi',
-            default_value='false',
+            default_value='true',
             description='Use Raspberry Pi config if true, laptop config otherwise'
         ),
         DeclareLaunchArgument(

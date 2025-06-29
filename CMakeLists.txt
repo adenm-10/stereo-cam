@@ -20,6 +20,11 @@ find_package(tf2_ros REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(ament_index_cpp REQUIRED)
+find_package(pcl_conversions REQUIRED)
+find_package(PCL REQUIRED COMPONENTS filters)
+
+link_directories(${PCL_LIBRARY_DIRS})
+add_definitions(${PCL_DEFINITIONS})
 
 # libcamera
 pkg_check_modules(LIBCAMERA REQUIRED IMPORTED_TARGET libcamera)
@@ -29,6 +34,7 @@ include_directories(
   include
   ${LIBCAMERA_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
 )
 
 # lccv_core library
@@ -64,6 +70,19 @@ target_link_libraries(cv_cam PUBLIC
   ${OpenCV_LIBS}
   pthread
 )
+
+# PCL
+add_executable(obstacle_detector 
+  src/obstacle_detection_node.cpp
+)
+ament_target_dependencies(obstacle_detector 
+  rclcpp 
+  sensor_msgs 
+  std_msgs 
+  pcl_conversions
+)
+
+target_link_libraries(obstacle_detector ${PCL_LIBRARIES})
 
 # stereo_node executable
 add_executable(stereo_node 
@@ -116,6 +135,7 @@ install(TARGETS
   stereo_calib
   lccv_core
   cv_cam
+  obstacle_detector
   DESTINATION lib/${PROJECT_NAME}
 )
 
