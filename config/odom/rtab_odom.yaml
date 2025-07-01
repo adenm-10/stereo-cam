@@ -7,6 +7,8 @@ rtabmap_odom:
     queue_size: 3
     approx_sync_max_interval: 0.02
 
+    Rtabmap/LoggerLeve: "3"
+
     # Odometry tuning
     Vis/MinInliers: "20"
     Odom/Strategy: "0"
