@@ -1,6 +1,6 @@
 ekf_filter_node:
   ros__parameters:
-    frequency: 40.0  # Keep up with IMU
+    frequency: 10.0  # Keep up with IMU
     sensor_timeout: 0.15
     two_d_mode: true # locks 
 
