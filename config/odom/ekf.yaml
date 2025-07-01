@@ -29,6 +29,6 @@ ekf_filter_node:
     base_link_frame: base_link
     odom_frame: odom
     map_frame: map
-    publish_tf: true
+    publish_tf: false
 
     # x, y, z, roll, pitch, yaw, vx, vy, vz, vroll, vpitch, vyaw, ax, ay, az
