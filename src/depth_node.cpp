@@ -140,8 +140,8 @@ void DepthNode::imageCallback(
         cv_bridge::CvImageConstPtr right_cv = cv_bridge::toCvShare(right_msg);
 
         cv::Mat left_gray, right_gray;
-        cv::cvtColor(left_cv->image, left_gray, cv::COLOR_BGR2GRAY);
-        cv::cvtColor(right_cv->image, right_gray, cv::COLOR_BGR2GRAY);
+        // cv::cvtColor(left_cv->image, left_gray, cv::COLOR_BGR2GRAY);
+        // cv::cvtColor(right_cv->image, right_gray, cv::COLOR_BGR2GRAY);
 
         cv::Mat disparity;
         stereo_matcher_->compute(left_gray, right_gray, disparity);

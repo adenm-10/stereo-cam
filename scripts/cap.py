@@ -59,8 +59,10 @@ class StereoImageCapture(Node):
     def sync_callback(self, left_msg, right_msg):
         try:
             # Convert both images
-            left_image = self.bridge.imgmsg_to_cv2(left_msg, "bgr8")
-            right_image = self.bridge.imgmsg_to_cv2(right_msg, "bgr8")
+            # left_image = self.bridge.imgmsg_to_cv2(left_msg, "bgr8")
+            # right_image = self.bridge.imgmsg_to_cv2(right_msg, "bgr8")
+            left_image = self.bridge.imgmsg_to_cv2(left_msg, "mono8")
+            right_image = self.bridge.imgmsg_to_cv2(right_msg, "mono8")
             
             # Concatenate images horizontally for display
             stereo_image = cv2.hconcat([left_image, right_image])

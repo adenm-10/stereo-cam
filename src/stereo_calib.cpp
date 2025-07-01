@@ -331,8 +331,8 @@ void StereoCalibration(std::vector<std::string>imagelist, int numCornersVer, int
 		s1 = image_l.size();
 		s2 = image_r.size();
 
-		cvtColor(image_l, gray_l, cv::COLOR_BGR2GRAY);
-		cvtColor(image_r, gray_r, cv::COLOR_BGR2GRAY);
+		// cvtColor(image_l, gray_l, cv::COLOR_BGR2GRAY);
+		// cvtColor(image_r, gray_r, cv::COLOR_BGR2GRAY);
 		std::vector<cv::Point2f> corners_r;
 		std::vector<cv::Point2f> corners_l;
 		bool ret1 = findChessboardCorners(gray_r, cv::Size(numCornersVer, numCornersHor), corners_r, cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_FILTER_QUADS);

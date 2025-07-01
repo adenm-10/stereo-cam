@@ -178,7 +178,8 @@ void StereoNode::initialize() {
                  << "video/x-h264,width=" << width_ << ",height=" << height_
                  << ",framerate=" << frame_rate_ << "/1 ! "
                  << "h264parse ! avdec_h264 ! videoconvert ! "
-                 << "video/x-raw,format=BGR ! appsink";
+                 //  << "video/x-raw,format=BGR ! appsink";
+                 << "video/x-raw,format=MONO8 ! appsink";
         
         left_gst_str = pipeline.str();
 
@@ -187,7 +188,8 @@ void StereoNode::initialize() {
                        << "image/jpeg,width=" << width_ << ",height=" << height_
                        << ",framerate=" << frame_rate_ << "/1 ! "
                        << "jpegdec ! videoconvert ! "
-                       << "video/x-raw,format=BGR ! appsink";
+                       //  << "video/x-raw,format=BGR ! appsink";
+                       << "video/x-raw,format=MONO8 ! appsink";
         
         right_gst_str = right_pipeline.str();
         
@@ -198,7 +200,8 @@ void StereoNode::initialize() {
                        << "image/jpeg,width=" << width_ << ",height=" << height_
                        << ",framerate=" << frame_rate_ << "/1 ! "
                        << "jpegdec ! videoconvert ! "
-                       << "video/x-raw,format=BGR ! appsink";
+                       //  << "video/x-raw,format=BGR ! appsink";
+                       << "video/x-raw,format=MONO8 ! appsink";
         // left_pipeline << "v4l2src device=/dev/video0 io-mode=2 ! image/jpeg,width=1280,height=720 ! jpegdec ! videorate ! video/x-raw,framerate=10/1 ! videoconvert ! video/x-raw,format=BGR ! appsink";
 
         left_gst_str = left_pipeline.str();
@@ -208,7 +211,8 @@ void StereoNode::initialize() {
                        << "image/jpeg,width=" << width_ << ",height=" << height_
                        << ",framerate=" << frame_rate_ << "/1 ! "
                        << "jpegdec ! videoconvert ! "
-                       << "video/x-raw,format=BGR ! appsink";
+                       //  << "video/x-raw,format=BGR ! appsink";
+                    << "video/x-raw,format=MONO8 ! appsink";
         // right_pipeline << "v4l2src device=/dev/video4 io-mode=2 ! image/jpeg,width=1280,height=720 ! jpegdec ! videorate ! video/x-raw,framerate=10/1 ! videoconvert ! video/x-raw,format=BGR ! appsink";
         
         right_gst_str = right_pipeline.str();
@@ -330,7 +334,8 @@ void StereoNode::publish_images(const cv::Mat& left_img, const cv::Mat& right_im
 
     // --- Left image ---
     header_left.frame_id = left_camera_optical_frame_;
-    auto left_msg = cv_bridge::CvImage(header_left, "bgr8", left_img).toImageMsg();
+    // auto left_msg = cv_bridge::CvImage(header_left, "bgr8", left_img).toImageMsg();
+    auto left_msg = cv_bridge::CvImage(header_left, "mono8", left_img).toImageMsg();
     left_pub_.publish(left_msg);
 
     // Left camera info
@@ -342,7 +347,8 @@ void StereoNode::publish_images(const cv::Mat& left_img, const cv::Mat& right_im
     std_msgs::msg::Header header_right;
     header_right.stamp = stamp_right;
     header_right.frame_id = right_camera_optical_frame_;
-    auto right_msg = cv_bridge::CvImage(header_right, "bgr8", right_img).toImageMsg();
+    // auto right_msg = cv_bridge::CvImage(header_right, "bgr8", right_img).toImageMsg();
+    auto right_msg = cv_bridge::CvImage(header_right, "mono8", right_img).toImageMsg();
     right_pub_.publish(right_msg);
 
     sensor_msgs::msg::CameraInfo right_info = right_info_manager_->getCameraInfo();
