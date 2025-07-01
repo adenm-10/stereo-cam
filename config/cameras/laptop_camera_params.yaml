@@ -2,13 +2,13 @@ stereo_node:
   ros__parameters:
     enable_depth: false
 
-    # image_width: 1920
-    # image_height: 1080
-    # frame_rate: 30
-
-    image_width: 640
-    image_height: 360
+    image_width: 1920
+    image_height: 1080
     frame_rate: 30
+
+    # image_width: 640
+    # image_height: 360
+    # frame_rate: 30
     
     left_format: H264
     left_port: /dev/video4
@@ -27,12 +27,12 @@ stereo_node:
     exposure_mode: "normal"
     gain: 1.0
     exposure_time: 0  # 0 for auto
-    left_camera_info_url: "package://stereo_cam/config/cameras/left_camera_info.yaml"
-    right_camera_info_url: "package://stereo_cam/config/cameras/right_camera_info.yaml"
-    calibration_file: "package://stereo_cam/config/cameras/StereoCalibration_6_27.yaml"
+    # left_camera_info_url: "package://stereo_cam/config/cameras/left_camera_info.yaml"
+    # right_camera_info_url: "package://stereo_cam/config/cameras/right_camera_info.yaml"
+    calibration_file: "package://stereo_cam/config/cameras/StereoCalibration_7_1.yaml"
 
   
     stereo:
       baseline: 0.152  # 60mm between cameras
-      focal_length: 1428.0  # pixels
+      focal_length: 479.14  # pixels
       principal_point: [968.0, 548.5]  # pixels 

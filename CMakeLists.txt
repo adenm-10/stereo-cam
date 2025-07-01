@@ -11,6 +11,7 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(stereo_msgs REQUIRED)
 find_package(visualization_msgs REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(cv_bridge REQUIRED)
@@ -79,7 +80,8 @@ ament_target_dependencies(obstacle_detector
   rclcpp 
   sensor_msgs 
   std_msgs 
-  pcl_conversions
+  cv_bridge
+  stereo_msgs
 )
 
 target_link_libraries(obstacle_detector ${PCL_LIBRARIES})

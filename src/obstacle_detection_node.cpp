@@ -1,129 +1,182 @@
 #include <rclcpp/rclcpp.hpp>
-#include <sensor_msgs/msg/point_cloud2.hpp>
-#include <std_msgs/msg/int32.hpp>
-
-#include <pcl_conversions/pcl_conversions.h>
-#include <pcl/point_cloud.h>
-#include <pcl/point_types.h>
-#include <pcl/filters/passthrough.h>
-
+#include <stereo_msgs/msg/disparity_image.hpp>
+#include <cv_bridge/cv_bridge.hpp>
+#include <opencv2/opencv.hpp>
 #include <limits>
-#include <cmath>
+#include <vector>
+#include <algorithm>
 
-class ObstacleDetector : public rclcpp::Node
+class ClosestObstacleDetector : public rclcpp::Node
 {
 public:
-  ObstacleDetector()
-  : Node("obstacle_detector")
+  ClosestObstacleDetector()
+  : Node("closest_obstacle_detector")
   {
-    // Subscription to stereo point cloud
-    point_cloud_sub_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
-      "/points2", 10,
-      std::bind(&ObstacleDetector::pointCloudCallback, this, std::placeholders::_1));
+    this->declare_parameter("baseline", 0.152);
+    this->declare_parameter("focal_length_px", 479.14);
+    this->declare_parameter("roi_fraction", 0.3); // Center ROI size (50% of width & height)
 
-    // Publisher for closest obstacle distance
-    closest_pub_ = this->create_publisher<std_msgs::msg::Int32>("/closest_obstacle_cm", 10);
+    baseline_ = this->get_parameter("baseline").as_double();
+    focal_length_px_ = this->get_parameter("focal_length_px").as_double();
+    roi_fraction_ = this->get_parameter("roi_fraction").as_double();
 
-    RCLCPP_INFO(this->get_logger(), "Obstacle detector node started.");
+    sub_ = this->create_subscription<stereo_msgs::msg::DisparityImage>(
+      "/disparity", rclcpp::SensorDataQoS(),
+      std::bind(&ClosestObstacleDetector::disparityCallback, this, std::placeholders::_1));
+      
+    RCLCPP_INFO(this->get_logger(), "ClosestObstacleDetector node started.");
   }
 
 private:
-  void pointCloudCallback(const sensor_msgs::msg::PointCloud2::SharedPtr msg)
+  void disparityCallback(const stereo_msgs::msg::DisparityImage::SharedPtr msg)
   {
-    // RCLCPP_INFO(this->get_logger(), "Detection Callback Called");
-    
-    // Convert to PCL point cloud
-    pcl::PointCloud<pcl::PointXYZ>::Ptr pcl_cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    pcl::fromROSMsg(*msg, *pcl_cloud);
+    // Access msg->image, which is the actual disparity image
+    cv_bridge::CvImagePtr cv_ptr;
 
-    // RCLCPP_INFO(this->get_logger(), "Input points: %zu", pcl_cloud->points.size());
+    try
+    {
+      cv_ptr = cv_bridge::toCvCopy(msg->image, msg->image.encoding);
+    }
+    catch (cv_bridge::Exception &e)
+    {
+      RCLCPP_ERROR(this->get_logger(), "cv_bridge exception: %s", e.what());
+      return;
+    }
 
-    // float min_x = std::numeric_limits<float>::max(), max_x = std::numeric_limits<float>::lowest();
-    // float min_y = std::numeric_limits<float>::max(), max_y = std::numeric_limits<float>::lowest();
-    // float min_z = std::numeric_limits<float>::max(), max_z = std::numeric_limits<float>::lowest();
-    // for (const auto& p : pcl_cloud->points) {
-    //     if (p.x < min_x) min_x = p.x;
-    //     if (p.x > max_x) max_x = p.x;
-    //     if (p.y < min_y) min_y = p.y;
-    //     if (p.y > max_y) max_y = p.y;
-    //     if (p.z < min_z) min_z = p.z;
-    //     if (p.z > max_z) max_z = p.z;
-    // }
-    // RCLCPP_INFO(this->get_logger(), "Cloud X: min %.2f, max %.2f", min_x, max_x);
-    // RCLCPP_INFO(this->get_logger(), "Cloud Y: min %.2f, max %.2f", min_y, max_y);
-    // RCLCPP_INFO(this->get_logger(), "Cloud Z: min %.2f, max %.2f", min_z, max_z);
+    cv::Mat disparity = cv_ptr->image;
+    RCLCPP_DEBUG(this->get_logger(), "Disparity image dimensions: %d x %d, type: %d", disparity.cols, disparity.rows, disparity.type());
 
-    // [obstacle_detector-4] [INFO] [1751224815.412252550] [obstacle_detector]: Cloud X: min -2835.06, max 17222.87
-    // [obstacle_detector-4] [INFO] [1751224815.412264018] [obstacle_detector]: Cloud Y: min -29527.56, max 3677.37
-    // [obstacle_detector-4] [INFO] [1751224815.412265362] [obstacle_detector]: Cloud Z: min 584.65, max 116287.16
+    // Convert to float32 if needed
+    if (disparity.type() != CV_32F)
+    {
+      disparity.convertTo(disparity, CV_32F);
+      RCLCPP_DEBUG(this->get_logger(), "Converted disparity to CV_32F.");
+    }
 
-    // Define ROI parameters
-    const float x_min = 1000.0;
-    const float x_max = 7500.0;
+    // Scale disparity if needed
+    double mean_disp = cv::mean(disparity)[0];
+    RCLCPP_DEBUG(this->get_logger(), "Mean disparity before scaling: %.2f", mean_disp);
+    if (mean_disp > 1000.0)
+    {
+      disparity = disparity / 16.0;
+      RCLCPP_DEBUG(this->get_logger(), "Scaled disparity by 1/16.");
+    }
 
-    const float y_min = -3000.0;
-    const float y_max = 3000.0; 
+    // Center ROI
+    int w = disparity.cols;
+    int h = disparity.rows;
+    int roi_w = static_cast<int>(w * roi_fraction_);
+    int roi_h = static_cast<int>(h * roi_fraction_);
+    int x0 = (w - roi_w) / 2;
+    int y0 = (h - roi_h) / 2;
+    cv::Rect roi_rect(x0, y0, roi_w, roi_h);
+    RCLCPP_DEBUG(this->get_logger(), "ROI rectangle: x=%d, y=%d, w=%d, h=%d", x0, y0, roi_w, roi_h);
 
-    const float z_min = 1000.0;
-    const float z_max = 20000.0;
-    
-    
-    // Filter in y (side to side)
-    pcl::PassThrough<pcl::PointXYZ> pass;
-    pass.setInputCloud(pcl_cloud);
-    pass.setFilterFieldName("y");
-    pass.setFilterLimits(y_min, y_max);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_y(new pcl::PointCloud<pcl::PointXYZ>);
-    pass.filter(*cloud_y);
-    // RCLCPP_INFO(this->get_logger(), "After y filter: %zu", cloud_y->points.size());
-    
-    // Filter in z (height)
-    pass.setInputCloud(cloud_y);
-    pass.setFilterFieldName("z");
-    pass.setFilterLimits(z_min, z_max);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_yz(new pcl::PointCloud<pcl::PointXYZ>);
-    pass.filter(*cloud_yz);
-    // RCLCPP_INFO(this->get_logger(), "After yz filter: %zu", cloud_yz->points.size());
-    
-    // Filter in x (forward distance)
-    pass.setInputCloud(cloud_yz);
-    pass.setFilterFieldName("x");
-    pass.setFilterLimits(x_min, x_max);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
-    pass.filter(*cloud_filtered);
-    // RCLCPP_INFO(this->get_logger(), "After xyz filter: %zu", cloud_filtered->points.size());
+    if (x0 < 0 || y0 < 0 || roi_w <= 0 || roi_h <= 0 || (x0 + roi_w) > w || (y0 + roi_h) > h)
+    {
+      RCLCPP_ERROR(this->get_logger(), "Invalid ROI parameters. Skipping this frame.");
+      return;
+    }
 
-    // Find closest point
-    float min_dist = std::numeric_limits<float>::max();
-    for (const auto& point : cloud_filtered->points) {
-      float dist = std::sqrt(point.x * point.x + point.y * point.y + point.z * point.z);
-      if (dist < min_dist) {
-        min_dist = dist;
+    cv::Mat roi = disparity(roi_rect);
+    RCLCPP_DEBUG(this->get_logger(), "Extracted ROI.");
+
+    // Valid disparity mask
+    cv::Mat valid_mask = roi > 0.1;
+    int num_valid_pixels = cv::countNonZero(valid_mask);
+    RCLCPP_DEBUG(this->get_logger(), "Number of valid disparity pixels in ROI: %d", num_valid_pixels);
+
+    std::vector<float> valid_depths;
+    valid_depths.reserve(num_valid_pixels);
+
+    std::vector<float> valid_x;
+    valid_x.reserve(num_valid_pixels);
+
+    for (int y = 0; y < roi.rows; ++y)
+    {
+      for (int x = 0; x < roi.cols; ++x)
+      {
+        float d = roi.at<float>(y, x);
+        if (d > 0.1f)
+        {
+          float z = (focal_length_px_ * baseline_) / d;
+          valid_depths.push_back(z);
+          valid_x.push_back(x);
+        }
       }
     }
 
-    std_msgs::msg::Int32 msg_out;
-    if (min_dist < std::numeric_limits<float>::max()) {
-      // Convert to cm and round
-      msg_out.data = static_cast<int>(std::round(min_dist * 100.0));
-    } else {
-      // No obstacle found, set to -1
-      msg_out.data = -1;
+    RCLCPP_DEBUG(this->get_logger(), "Collected %zu valid depth values.", valid_depths.size());
+
+    // Check if enough valid pixels
+    size_t min_valid_pixels = (roi.rows * roi.cols) * 0.05; // require at least 5% valid
+    if (valid_depths.size() < min_valid_pixels)
+    {
+      RCLCPP_WARN(this->get_logger(), "Not enough valid pixels in ROI: %zu (minimum required: %zu)", valid_depths.size(), min_valid_pixels);
+      return;
     }
 
-    closest_pub_->publish(msg_out);
+    // Use median for robustness
+    // std::nthsmoothed__element(valid_depths.begin(), valid_depths.begin() + valid_depths.size() / 2, valid_depths.end());
     
-    RCLCPP_INFO(this->get_logger(), "Detection Distance Calculated: %f cm", min_dist);
-  }
+    // Find minimum
+    float min_depth = *std::min_element(valid_depths.begin(), valid_depths.end());
 
-  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr point_cloud_sub_;
-  rclcpp::Publisher<std_msgs::msg::Int32>::SharedPtr closest_pub_;
+    // Find lower quartile (25th percentile)
+    size_t q1_idx = valid_depths.size() / 4;
+    std::nth_element(valid_depths.begin(), valid_depths.begin() + q1_idx, valid_depths.end());
+    float lower_quartile_depth = valid_depths[q1_idx];
+
+    std::vector<int> x_near_lq;
+    for (size_t i = 0; i < valid_depths.size(); ++i)
+    {
+      if (std::abs(valid_depths[i] - lower_quartile_depth) < 0.1f)  // adjust tolerance
+      {
+        x_near_lq.push_back(valid_x[i]);
+      }
+    }
+
+    float avg_x = 0.0f;
+
+    if (!x_near_lq.empty())
+    {
+      for (int x_val : x_near_lq)
+      {
+        avg_x += x_val;
+      }
+      avg_x /= x_near_lq.size();
+    }
+    else
+    {
+      avg_x = -1.0f;
+    }
+
+    float avg_x_global = avg_x + x0;
+
+    float image_center_x = w / 2.0f;
+    float offset_from_center = avg_x_global - image_center_x;
+
+    RCLCPP_INFO(this->get_logger(),
+      "Closest mass at ~%.2f m. Avg x offset from center: %.1f px (points: %zu).",
+      lower_quartile_depth,
+      offset_from_center,
+      x_near_lq.size());
+
+      
+    }
+
+  rclcpp::Subscription<stereo_msgs::msg::DisparityImage>::SharedPtr sub_;
+  double baseline_;
+  double focal_length_px_;
+  double roi_fraction_;
+  float smoothed_l_r_x_ = -1.0;  // Initialize at start
 };
 
 int main(int argc, char **argv)
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<ObstacleDetector>());
+  auto node = std::make_shared<ClosestObstacleDetector>();
+  rclcpp::spin(node);
   rclcpp::shutdown();
   return 0;
 }

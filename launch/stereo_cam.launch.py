@@ -60,7 +60,7 @@ def launch_setup(context, *args, **kwargs):
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 PathJoinSubstitution([
-                    get_package_share_directory('stereo_image_proc'),
+                    get_package_share_directory('stereo_cam'),
                     'launch',
                     'stereo_image_proc.launch.py'
                 ])
@@ -76,7 +76,7 @@ def generate_launch_description():
     return LaunchDescription([
         DeclareLaunchArgument(
             'use_raspi',
-            default_value='true',
+            default_value='false',
             description='Use Raspberry Pi config if true, laptop config otherwise'
         ),
         DeclareLaunchArgument(

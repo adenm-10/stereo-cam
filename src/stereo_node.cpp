@@ -235,12 +235,12 @@ void StereoNode::initialize() {
         right_camera_info_url_
     );
 
-    if (!left_info_manager_->loadCameraInfo(left_camera_info_url_)) {
-        RCLCPP_WARN(get_logger(), "Failed to load left camera calibration");
-    }
-    if (!right_info_manager_->loadCameraInfo(right_camera_info_url_)) {
-        RCLCPP_WARN(get_logger(), "Failed to load right camera calibration");
-    }
+    // if (!left_info_manager_->loadCameraInfo(left_camera_info_url_)) {
+    //     RCLCPP_WARN(get_logger(), "Failed to load left camera calibration");
+    // }
+    // if (!right_info_manager_->loadCameraInfo(right_camera_info_url_)) {
+    //     RCLCPP_WARN(get_logger(), "Failed to load right camera calibration");
+    // }
 
     // In initialize() function after creating camera info managers
     std::string calib_file = this->declare_parameter("calibration_file", "");
@@ -257,7 +257,7 @@ void StereoNode::initialize() {
         if (CalibrationUtils::updateCameraInfo(calib_file, left_info, right_info)) {
             left_info_manager_->setCameraInfo(left_info);
             right_info_manager_->setCameraInfo(right_info);
-            RCLCPP_INFO(get_logger(), "Updated camera info from calibration file");
+            RCLCPP_INFO(get_logger(), "Updated camera info from stereo calibration file");
         }
     }
 

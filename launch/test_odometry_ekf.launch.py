@@ -2,11 +2,11 @@ import os
 
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
-from launch.substitutions import PathJoinSubstitution, Command
+from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
-from launch_ros.parameter_descriptions import ParameterValue, ParameterFile
+from launch_ros.parameter_descriptions import ParameterFile
 
 def generate_launch_description():
     pkg_dir = get_package_share_directory('stereo_cam')
@@ -23,16 +23,16 @@ def generate_launch_description():
     return LaunchDescription([
 
         # Drivers
-        # Node(
-        #     package='mpu9250driver',
-        #     executable='mpu9250driver',
-        #     name='mpu9250driver_node',
-        #     output='screen',
-        #     respawn=True,
-        #     respawn_delay=4,
-        #     emulate_tty=True,
-        #     parameters=[mpu_imu_params]
-        # ),
+        Node(
+            package='mpu9250driver',
+            executable='mpu9250driver',
+            name='mpu9250driver_node',
+            output='screen',
+            respawn=True,
+            respawn_delay=4,
+            emulate_tty=True,
+            parameters=[mpu_imu_params]
+        ),
 
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(

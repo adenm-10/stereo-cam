@@ -25,10 +25,10 @@ stereo_node:
     exposure_time: 0  # 0 for auto
     left_camera_info_url: "package://stereo_cam/config/cameras/left_camera_info.yaml"
     right_camera_info_url: "package://stereo_cam/config/cameras/right_camera_info.yaml"
-    calibration_file: "package://stereo_cam/config/cameras/StereoCalibration_6_26.yaml"
+    calibration_file: "package://stereo_cam/config/cameras/StereoCalibration_6_30.yaml"
 
   
     stereo:
       baseline: 0.152  # 152.4 mm between cameras
-      focal_length: 1428.0  # pixels
+      focal_length: 479.14 # pixels
       principal_point: [968.0, 548.5]  # pixels 
