@@ -177,8 +177,8 @@ void StereoNode::initialize() {
         pipeline << "v4l2src device=" << left_port_ << " io-mode=2 ! "
                  << "video/x-h264,width=" << width_ << ",height=" << height_
                  << ",framerate=" << frame_rate_ << "/1 ! "
-                 << "h264parse ! avdec_h264 ! videoconvert ! "
-                 //  << "video/x-raw,format=BGR ! appsink";
+                //  << "h264parse ! avdec_h264 ! videoconvert ! "
+                  << "video/x-raw,format=BGR ! appsink";
                  << "video/x-raw,format=MONO8 ! appsink";
         
         left_gst_str = pipeline.str();
@@ -188,8 +188,8 @@ void StereoNode::initialize() {
                        << "image/jpeg,width=" << width_ << ",height=" << height_
                        << ",framerate=" << frame_rate_ << "/1 ! "
                        << "jpegdec ! videoconvert ! "
-                       //  << "video/x-raw,format=BGR ! appsink";
-                       << "video/x-raw,format=MONO8 ! appsink";
+                        << "video/x-raw,format=BGR ! appsink";
+                    //    << "video/x-raw,format=MONO8 ! appsink";
         
         right_gst_str = right_pipeline.str();
         
@@ -200,8 +200,8 @@ void StereoNode::initialize() {
                        << "image/jpeg,width=" << width_ << ",height=" << height_
                        << ",framerate=" << frame_rate_ << "/1 ! "
                        << "jpegdec ! videoconvert ! "
-                       //  << "video/x-raw,format=BGR ! appsink";
-                       << "video/x-raw,format=MONO8 ! appsink";
+                        << "video/x-raw,format=BGR ! appsink";
+                    //    << "video/x-raw,format=MONO8 ! appsink";
         // left_pipeline << "v4l2src device=/dev/video0 io-mode=2 ! image/jpeg,width=1280,height=720 ! jpegdec ! videorate ! video/x-raw,framerate=10/1 ! videoconvert ! video/x-raw,format=BGR ! appsink";
 
         left_gst_str = left_pipeline.str();
@@ -211,8 +211,8 @@ void StereoNode::initialize() {
                        << "image/jpeg,width=" << width_ << ",height=" << height_
                        << ",framerate=" << frame_rate_ << "/1 ! "
                        << "jpegdec ! videoconvert ! "
-                       //  << "video/x-raw,format=BGR ! appsink";
-                    << "video/x-raw,format=MONO8 ! appsink";
+                        << "video/x-raw,format=BGR ! appsink";
+                    // << "video/x-raw,format=MONO8 ! appsink";
         // right_pipeline << "v4l2src device=/dev/video4 io-mode=2 ! image/jpeg,width=1280,height=720 ! jpegdec ! videorate ! video/x-raw,framerate=10/1 ! videoconvert ! video/x-raw,format=BGR ! appsink";
         
         right_gst_str = right_pipeline.str();
