@@ -98,7 +98,8 @@ def generate_launch_description():
                     'right/image_rect_color',
                     [LaunchConfiguration('right_namespace'), '/image_rect_color']
                 ),
-            ]
+            ],
+            condition=IfCondition(LaunchConfiguration('launch_pc')),
         ),
     ]
 
@@ -201,6 +202,10 @@ def generate_launch_description():
         DeclareLaunchArgument(
             name='sgbm_mode', default_value='2',
             description='The mode of the SGBM matcher to be used'
+        ),
+        DeclareLaunchArgument(
+            name='launch_pc', default_value='False',
+            description='whether to launch point cloud node'
         ),
         ComposableNodeContainer(
             condition=LaunchConfigurationEquals('container', ''),

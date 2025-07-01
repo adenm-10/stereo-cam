@@ -62,7 +62,8 @@ def launch_setup(context, *args, **kwargs):
                 PathJoinSubstitution([
                     get_package_share_directory('stereo_cam'),
                     'launch',
-                    'stereo_image_proc.launch.py'
+                    # 'stereo_image_proc.launch.py'
+                    'stereo_image_rect.launch.py'
                 ])
             ),
             launch_arguments={
