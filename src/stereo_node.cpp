@@ -310,6 +310,9 @@ void StereoNode::run() {
             
             
             if (left_ok && right_ok) {
+                cv::Mat left_gray, right_gray;
+                cv::cvtColor(left_frame, left_gray, cv::COLOR_BGR2GRAY);
+                cv::cvtColor(right_frame, right_gray, cv::COLOR_BGR2GRAY);
                 publish_images(left_frame, right_frame, stamp_left, stamp_right);
             } else {
                 RCLCPP_WARN(this->get_logger(),
