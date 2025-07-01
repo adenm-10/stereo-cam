@@ -21,20 +21,20 @@ ekf_filter_node:
 
     publish_tf: true
 
-    # Process noise covariance (state estimate uncertainty)
-    process_noise_covariance: [0.05, 0, 0, 0, 0, 0,
-                               0, 0.05, 0, 0, 0, 0,
-                               0, 0, 0.01, 0, 0, 0,
-                               0, 0, 0, 0.1, 0, 0,
-                               0, 0, 0, 0, 0.1, 0,
-                               0, 0, 0, 0, 0, 0.1]
+    # # Process noise covariance (state estimate uncertainty)
+    # process_noise_covariance: [0.05, 0, 0, 0, 0, 0,
+    #                            0, 0.05, 0, 0, 0, 0,
+    #                            0, 0, 0.01, 0, 0, 0,
+    #                            0, 0, 0, 0.1, 0, 0,
+    #                            0, 0, 0, 0, 0.1, 0,
+    #                            0, 0, 0, 0, 0, 0.1]
 
-    initial_estimate_covariance: [1e-9, 0, 0, 0, 0, 0,
-                                  0, 1e-9, 0, 0, 0, 0,
-                                  0, 0, 1e-9, 0, 0, 0,
-                                  0, 0, 0, 1e-9, 0, 0,
-                                  0, 0, 0, 0, 1e-9, 0,
-                                  0, 0, 0, 0, 0, 1e-9]
+    # initial_estimate_covariance: [1e-9, 0, 0, 0, 0, 0,
+    #                               0, 1e-9, 0, 0, 0, 0,
+    #                               0, 0, 1e-9, 0, 0, 0,
+    #                               0, 0, 0, 1e-9, 0, 0,
+    #                               0, 0, 0, 0, 1e-9, 0,
+    #                               0, 0, 0, 0, 0, 1e-9]
 
-    # Use IMU covariances directly
-    use_control_covariance: false
+    # # Use IMU covariances directly
+    # use_control_covariance: false
