@@ -34,4 +34,9 @@ def generate_launch_description():
             output='screen',
             parameters=[ekf_params]
         ),
+
+        Node(
+            package='mpu9250driver',
+            executable='odom_tracker_node'
+        ),
     ])
