@@ -17,7 +17,7 @@ def generate_launch_description():
     rtab_odom_config_path = os.path.join(pkg_dir, 'config', 'odom', 'rtab_odom.yaml')
     rtab_odom_params = ParameterFile(rtab_odom_config_path)
 
-    mpu_imu_config_path = os.path.join(pkg_dir, 'config', 'odom', 'mpu_imu.yaml')
+    mpu_imu_config_path = os.path.join(pkg_dir, 'params', 'mpu_imu.yaml')
     mpu_imu_params = ParameterFile(mpu_imu_config_path)
 
     return LaunchDescription([
