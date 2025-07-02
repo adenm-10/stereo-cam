@@ -11,9 +11,10 @@ rtabmap_odom:
 
     # Odometry tuning
     Vis/MinInliers: "20"
-    Odom/Strategy: "0"
+    Odom/Strategy: "1"
     Odom/MaxGuessDistance: "0.3"
     StereoEgoMotion/MaxTranslation: "0.3"
+    Vis/CorType: "1"
 
     Odom/FilteringStrategy: "0"
     Odom/FilterSmoothFactor: "0.1"  # Higher trust in predicted motion
@@ -35,7 +36,8 @@ rtabmap_odom:
     # publish_tf: false
     # publish_null_when_lost: true
 
-    Odom/MaxFeatures: "500"
+    OdomF2M/MaxSize: "1000"
+    Odom/MaxFeatures: "600"
     Odom/MinInliers: "20"
     Odom/FeatureType: "ORB"  # Try SURF or SIFT if CPU permits
-    
+    Odom/ResetCountdown: "1"
