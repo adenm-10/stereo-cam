@@ -49,7 +49,6 @@ def compose_perception(context):
             ],
             extra_arguments=[
                 {'use_intra_process_comms': True},
-                {'log_level': log_level}
             ]
         ),
         # 2a left rectify
@@ -65,7 +64,6 @@ def compose_perception(context):
             ],
             extra_arguments=[
                 {'use_intra_process_comms': True},
-                {'log_level': log_level}
             ]
         ),
         # 2b right rectify
@@ -81,7 +79,6 @@ def compose_perception(context):
             ],
             extra_arguments=[
                 {'use_intra_process_comms': True},
-                {'log_level': log_level}
             ]
         ),
         # 3 disparity
@@ -91,7 +88,6 @@ def compose_perception(context):
             name='disparity_node',
             extra_arguments=[
                 {'use_intra_process_comms': True},
-                {'log_level': log_level}
             ]
         ),
         # 4 stereo VO
@@ -102,7 +98,6 @@ def compose_perception(context):
             parameters=[rtab_params],
             extra_arguments=[
                 {'use_intra_process_comms': True},
-                {'log_level': log_level}
             ]
         ),
     ]
@@ -121,7 +116,8 @@ def compose_perception(context):
         executable='component_container_mt',
         parameters=[{'use_intra_process_comms': True}],
         composable_node_descriptions=components,
-        output='screen'
+        output='screen', 
+        arguments=['--ros-args', '--log-level', log_level]
     )
     return [container]
 
@@ -136,7 +132,7 @@ def generate_launch_description():
         DeclareLaunchArgument('rviz',       default_value='false'),
         DeclareLaunchArgument('namespace',  default_value=''),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
-        DeclareLaunchArgument('log_level', default_value='warn'),
+        DeclareLaunchArgument('log_level', default_value='WARN'),
 
         # one container with everything
         OpaqueFunction(function=compose_perception),
@@ -155,7 +151,7 @@ def generate_launch_description():
                 'use_sim_time': LaunchConfiguration('use_sim_time')
             }],
             output='screen',
-            arguments=['--ros-args', '--log-level', logger]
+            arguments=['--ros-args', '--log-level', 'warn']
         ),
 
         # optional RViz
