@@ -23,6 +23,8 @@ def compose_perception(context):
     use_raspi   = LaunchConfiguration('use_raspi').perform(context).lower() == 'true'
     cam_cfg     = raspi_cfg if use_raspi else laptop_cfg
 
+    log_level = LaunchConfiguration('log_level')
+
     rtab_params = ParameterFile(os.path.join(
         pkg_dir, 'config/odom/rtab_odom.yaml'
     ))
@@ -44,6 +46,10 @@ def compose_perception(context):
                 cam_cfg,
                 robot_description,
                 {'enable_depth':  LaunchConfiguration('enable_depth')},
+            ],
+            extra_arguments=[
+                {'use_intra_process_comms': True},
+                {'log_level': log_level}
             ]
         ),
         # 2a left rectify
@@ -56,6 +62,10 @@ def compose_perception(context):
                 ('camera_info',    '/left/camera_info'),
                 ('image_rect',     '/left/image_rect'),
                 ('camera_info_out','/left/camera_info_rect'),
+            ],
+            extra_arguments=[
+                {'use_intra_process_comms': True},
+                {'log_level': log_level}
             ]
         ),
         # 2b right rectify
@@ -68,20 +78,32 @@ def compose_perception(context):
                 ('camera_info',    '/right/camera_info'),
                 ('image_rect',     '/right/image_rect'),
                 ('camera_info_out','/right/camera_info_rect'),
+            ],
+            extra_arguments=[
+                {'use_intra_process_comms': True},
+                {'log_level': log_level}
             ]
         ),
         # 3 disparity
         ComposableNode(
             package='stereo_image_proc',
             plugin='stereo_image_proc::DisparityNode',
-            name='disparity_node'
+            name='disparity_node',
+            extra_arguments=[
+                {'use_intra_process_comms': True},
+                {'log_level': log_level}
+            ]
         ),
         # 4 stereo VO
         ComposableNode(
             package='rtabmap_odom',
             plugin='rtabmap_odom::StereoOdometry',
             name='rtabmap_odom',
-            parameters=[rtab_params]
+            parameters=[rtab_params],
+            extra_arguments=[
+                {'use_intra_process_comms': True},
+                {'log_level': log_level}
+            ]
         ),
     ]
 
@@ -114,6 +136,7 @@ def generate_launch_description():
         DeclareLaunchArgument('rviz',       default_value='false'),
         DeclareLaunchArgument('namespace',  default_value=''),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
+        DeclareLaunchArgument('log_level', default_value='warn'),
 
         # one container with everything
         OpaqueFunction(function=compose_perception),
@@ -131,7 +154,8 @@ def generate_launch_description():
                     )]),
                 'use_sim_time': LaunchConfiguration('use_sim_time')
             }],
-            output='screen'
+            output='screen',
+            arguments=['--ros-args', '--log-level', logger]
         ),
 
         # optional RViz
