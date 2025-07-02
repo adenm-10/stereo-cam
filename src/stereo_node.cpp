@@ -188,7 +188,7 @@ void StereoNode::initialize() {
                        << "image/jpeg,width=" << width_ << ",height=" << height_
                        << ",framerate=" << frame_rate_ << "/1 ! "
                        << "jpegdec ! videoconvert ! "
-                        << "video/x-raw,format=BGR ! appsink";
+                       << "video/x-raw,format=BGR ! appsink";
                     //    << "video/x-raw,format=MONO8 ! appsink";
         
         right_gst_str = right_pipeline.str();
@@ -221,8 +221,6 @@ void StereoNode::initialize() {
         RCLCPP_ERROR(this->get_logger(), "Mismatched configuration devices");
     }
 
-    // cams(left_gst_str, right_gst_str);
-    // right_cam_ = std::make_unique<lccv::PiCamera>(1);
     left_cam_ = std::make_unique<cv_cam::Arducam>(left_gst_str);
     right_cam_ = std::make_unique<cv_cam::Arducam>(right_gst_str);
 
@@ -278,51 +276,52 @@ void StereoNode::run() {
     auto period = std::chrono::microseconds(1000000 / frame_rate_);
 
     // Create a separate thread for camera capture
-    std::thread capture_thread([this, period]() {
-        while (running_ && rclcpp::ok()) {
-            auto start = std::chrono::steady_clock::now();
+    // std::thread capture_thread([this, period]() {
+    while (running_ && rclcpp::ok()) {
+        auto start = std::chrono::steady_clock::now();
 
-            cv::Mat left_frame, right_frame;
-            bool left_ok = false, right_ok = false;
-            rclcpp::Time stamp_left, stamp_right;
+        cv::Mat left_frame, right_frame;
+        bool left_ok = false, right_ok = false;
+        rclcpp::Time stamp_left, stamp_right;
 
-            left_ok = left_cam_->getVideoFrame(left_frame, 100);
-            stamp_left = this->now();
+        left_ok = left_cam_->getVideoFrame(left_frame, 100);
+        stamp_left = this->now();
+        
 
-            right_ok = right_cam_->getVideoFrame(right_frame, 100);
-            stamp_right = this->now();
-            
-            /*
-            // Timing after both captures
-            auto t_after = std::chrono::steady_clock::now();
-            auto dt_loop_total = std::chrono::duration_cast<std::chrono::milliseconds>(t_after - start).count();
-            
-            // Timing logs
-            RCLCPP_INFO(this->get_logger(),
-            "Parallel capture done. Left OK: %d, Right OK: %d, Loop total: %ld ms",
-            left_ok, right_ok, dt_loop_total);
-            
-            // Also log stamps (as floating point seconds for easy reading)
-            RCLCPP_INFO(this->get_logger(),
-            "Stamps - Left: %.6f, Right: %.6f",
-            stamp_left.seconds(), stamp_right.seconds());
-            */
-            
-            
-            if (left_ok && right_ok) {
-                cv::Mat left_gray, right_gray;
-                cv::cvtColor(left_frame, left_gray, cv::COLOR_BGR2GRAY);
-                cv::cvtColor(right_frame, right_gray, cv::COLOR_BGR2GRAY);
-                publish_images(left_frame, right_frame, stamp_left, stamp_right);
-            } else {
-                RCLCPP_WARN(this->get_logger(),
-                    "Failed to capture stereo images - Left: %d, Right: %d", left_ok, right_ok);
-            }
+        right_ok = right_cam_->getVideoFrame(right_frame, 100);
+        stamp_right = this->now();
+        
+        /*
+        // Timing after both captures
+        auto t_after = std::chrono::steady_clock::now();
+        auto dt_loop_total = std::chrono::duration_cast<std::chrono::milliseconds>(t_after - start).count();
+        
+        // Timing logs
+        RCLCPP_INFO(this->get_logger(),
+        "Parallel capture done. Left OK: %d, Right OK: %d, Loop total: %ld ms",
+        left_ok, right_ok, dt_loop_total);
+        
+        // Also log stamps (as floating point seconds for easy reading)
+        RCLCPP_INFO(this->get_logger(),
+        "Stamps - Left: %.6f, Right: %.6f",
+        stamp_left.seconds(), stamp_right.seconds());
+        */
+        
+        
+        if (left_ok && right_ok) {
+            // cv::Mat left_gray, right_gray;
+            // cv::cvtColor(left_frame, left_gray, cv::COLOR_BGR2GRAY);
+            // cv::cvtColor(right_frame, right_gray, cv::COLOR_BGR2GRAY);
+            publish_images(left_frame, right_frame, stamp_left, stamp_right);
+        } else {
+            RCLCPP_WARN(this->get_logger(),
+                "Failed to capture stereo images - Left: %d, Right: %d", left_ok, right_ok);
         }
-    });
+    }
+    // });
 
     // Detach the thread so it runs independently
-    capture_thread.detach();
+    // capture_thread.detach();
 }
 
 StereoNode::~StereoNode() {
@@ -337,8 +336,8 @@ void StereoNode::publish_images(const cv::Mat& left_img, const cv::Mat& right_im
 
     // --- Left image ---
     header_left.frame_id = left_camera_optical_frame_;
-    // auto left_msg = cv_bridge::CvImage(header_left, "bgr8", left_img).toImageMsg();
-    auto left_msg = cv_bridge::CvImage(header_left, "mono8", left_img).toImageMsg();
+    auto left_msg = cv_bridge::CvImage(header_left, "bgr8", left_img).toImageMsg();
+    // auto left_msg = cv_bridge::CvImage(header_left, "mono8", left_img).toImageMsg();
     left_pub_.publish(left_msg);
 
     // Left camera info
@@ -350,8 +349,8 @@ void StereoNode::publish_images(const cv::Mat& left_img, const cv::Mat& right_im
     std_msgs::msg::Header header_right;
     header_right.stamp = stamp_right;
     header_right.frame_id = right_camera_optical_frame_;
-    // auto right_msg = cv_bridge::CvImage(header_right, "bgr8", right_img).toImageMsg();
-    auto right_msg = cv_bridge::CvImage(header_right, "mono8", right_img).toImageMsg();
+    auto right_msg = cv_bridge::CvImage(header_right, "bgr8", right_img).toImageMsg();
+    // auto right_msg = cv_bridge::CvImage(header_right, "mono8", right_img).toImageMsg();
     right_pub_.publish(right_msg);
 
     sensor_msgs::msg::CameraInfo right_info = right_info_manager_->getCameraInfo();

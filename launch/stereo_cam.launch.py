@@ -1,13 +1,13 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, OpaqueFunction
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
 from launch.substitutions import LaunchConfiguration, Command
-from launch_ros.actions import Node
+from launch_ros.actions import Node, ComposableNodeContainer
+from launch_ros.descriptions import ComposableNode
 from launch.substitutions import PathJoinSubstitution
 from launch_ros.parameter_descriptions import ParameterValue
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch.conditions import IfCondition
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 def launch_setup(context, *args, **kwargs):
     pkg_dir = get_package_share_directory('stereo_cam')
@@ -27,18 +27,30 @@ def launch_setup(context, *args, **kwargs):
         value_type=str
     )
 
+    # Composable container for stereo_node
+    stereo_container = ComposableNodeContainer(
+        name='stereo_container',
+        namespace='',
+        package='rclcpp_components',
+        executable='component_container_mt',
+        composable_node_descriptions=[
+            ComposableNode(
+                package='stereo_cam',
+                plugin='stereo_cam::StereoNode',
+                name='stereo_node',
+                parameters=[
+                    selected_config,
+                    {'robot_description': robot_description},
+                    {'enable_depth': LaunchConfiguration('enable_depth')}
+                ]
+            ),
+        ],
+        output='screen',
+    )
+
     # Return nodes
     return [
-        Node(
-            package='stereo_cam',
-            executable='stereo_node',
-            parameters=[
-                selected_config,
-                {'robot_description': robot_description},
-                {'enable_depth': LaunchConfiguration('enable_depth')}
-            ],
-            output='screen'
-        ),
+        stereo_container,
 
         Node(
             package='robot_state_publisher',

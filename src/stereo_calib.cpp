@@ -294,6 +294,7 @@ static bool readStringList(const std::string& filename, std::vector<std::string>
 
 void StereoCalibration(std::vector<std::string>imagelist, int numCornersVer, int numCornersHor, int numSquares, int ShowChessCorners)
 {
+
 	if (numCornersVer <= 0 || numCornersHor <= 0 || numSquares <= 0) {
 		throw std::invalid_argument("Invalid chessboard parameters");
 	}
@@ -331,8 +332,8 @@ void StereoCalibration(std::vector<std::string>imagelist, int numCornersVer, int
 		s1 = image_l.size();
 		s2 = image_r.size();
 
-		// cvtColor(image_l, gray_l, cv::COLOR_BGR2GRAY);
-		// cvtColor(image_r, gray_r, cv::COLOR_BGR2GRAY);
+		cvtColor(image_l, gray_l, cv::COLOR_BGR2GRAY);
+		cvtColor(image_r, gray_r, cv::COLOR_BGR2GRAY);
 		std::vector<cv::Point2f> corners_r;
 		std::vector<cv::Point2f> corners_l;
 		bool ret1 = findChessboardCorners(gray_r, cv::Size(numCornersVer, numCornersHor), corners_r, cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_FILTER_QUADS);
@@ -498,11 +499,173 @@ void ShowMatchResult(cv::Mat&srcImg, std::vector<cv::KeyPoint>&srcKeypoint, cv::
 	return;
 }
 
+double StereoCalibrationCustom(std::vector<std::string> imagelist, int numCornersVer, int numCornersHor, int numSquares, int ShowChessCorners)
+{
+
+	if (numCornersVer <= 0 || numCornersHor <= 0 || numSquares <= 0) {
+		throw std::invalid_argument("Invalid chessboard parameters");
+	}
+
+	if (imagelist.size() % 2 != 0)
+	{
+		std::cout << "Error: the image list contains odd (non-even) number of elements\n";
+		return 0.0;
+	}
+
+	std::vector<std::vector<cv::Point2f>> image_leftPoints, image_rightPoints;
+	std::vector<std::vector<cv::Point3f>> objectPoints;
+	cv::TermCriteria criteria = cv::TermCriteria(cv::TermCriteria::EPS + cv::TermCriteria::MAX_ITER, 30, 0.001);
+	cv::Mat gray_l, gray_r;
+	cv::Mat image_l, image_r;
+	std::vector<cv::Point3f> obj;
+
+	
+	for (int i = 0; i < numCornersHor; i++)
+	{
+		for (int j = 0; j < numCornersVer; j++)
+		{
+			obj.push_back(cv::Point3f((float)j * numSquares, (float)i * numSquares, 0));
+		}	
+	}
+	cv::Size s1, s2;
+	for (size_t i = 0; i < imagelist.size()/2; i++)
+	{
+		
+		image_l = cv::imread(imagelist[2*i]);
+		image_r = cv::imread(imagelist[2*i+1]);
+		if (image_l.empty() || image_r.empty()) {
+			std::cerr << "Failed to load images: " << imagelist[2*i] << " or " << imagelist[2*i+1] << std::endl;
+			continue;
+		}
+		
+		s1 = image_l.size();
+		s2 = image_r.size();
+
+		cvtColor(image_l, gray_l, cv::COLOR_BGR2GRAY);
+		cvtColor(image_r, gray_r, cv::COLOR_BGR2GRAY);
+		std::vector<cv::Point2f> corners_r;
+		std::vector<cv::Point2f> corners_l;
+		bool ret1 = findChessboardCorners(gray_r, cv::Size(numCornersVer, numCornersHor), corners_r, cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_FILTER_QUADS);
+		bool ret2 = findChessboardCorners(gray_l, cv::Size(numCornersVer, numCornersHor), corners_l, cv::CALIB_CB_ADAPTIVE_THRESH | cv::CALIB_CB_FILTER_QUADS);
+		if (ret1&&ret2&&ShowChessCorners)
+		{
+			cornerSubPix(gray_l, corners_l, cv::Size(5, 5), cv::Size(-1, -1), criteria);
+			drawChessboardCorners(image_l, cv::Size(numCornersVer, numCornersHor), corners_l, ret1);
+			imshow("ChessboardCorners", image_l);
+			std::cout << imagelist[2 * i] << std::endl;
+			cv::waitKey(0);
+			cornerSubPix(gray_r, corners_r, cv::Size(5, 5), cv::Size(-1, -1), criteria);
+			drawChessboardCorners(image_r, cv::Size(numCornersVer, numCornersHor), corners_r, ret2);
+			imshow("ChessboardCorners", image_r);
+			std::cout << imagelist[2 * i+1] << std::endl;
+			cv::waitKey(0);
+		}
+		if (ret1&&ret2)
+		{
+			image_rightPoints.push_back(corners_r);
+			image_leftPoints.push_back(corners_l);
+			objectPoints.push_back(obj);
+		}
+
+	}
+	if (objectPoints.empty() || image_leftPoints.empty() || image_rightPoints.empty()) {
+		throw std::runtime_error("No valid chessboard patterns found in images");
+	}
+
+	cv::Mat intrinsic_left = cv::Mat(3, 3, CV_32FC1);
+	cv::Mat distCoeffs_left;
+	std::vector<cv::Mat> rvecs_l;
+	std::vector<cv::Mat> tvecs_l;
+
+	intrinsic_left.ptr<float>(0)[0] = 1;
+	intrinsic_left.ptr<float>(1)[1] = 1;
+	cv::calibrateCamera(objectPoints, image_leftPoints, s1, intrinsic_left, distCoeffs_left, rvecs_l, tvecs_l);
+	cv::Mat intrinsic_right = cv::Mat(3, 3, CV_32FC1);
+	cv::Mat distCoeffs_right;
+	std::vector<cv::Mat> rvecs_r;
+	std::vector<cv::Mat> tvecs_r;
+	cv::Mat R_total;
+	cv::Vec3d T_total;
+	intrinsic_right.ptr<float>(0)[0] = 1;
+	intrinsic_right.ptr<float>(1)[1] = 1;
+	cv::calibrateCamera(objectPoints, image_rightPoints, s2, intrinsic_right, distCoeffs_right, rvecs_r, tvecs_r);
+	cv::Mat R_L;
+	cv::Mat R_R;
+	cv::Mat P1;
+	cv::Mat P2;
+	cv::Mat Q;
+	cv::Rect validROIL, validROIR;
+	cv::Mat E;
+	cv::Mat F;
+	cv::Mat R;
+	cv::Mat T;
+	// std::cout << "Stereo Calibration start!" <<std::endl;
+	double rms = cv::stereoCalibrate(objectPoints, image_leftPoints, image_rightPoints,intrinsic_left, distCoeffs_left,intrinsic_right, distCoeffs_right,
+		cv::Size(1920,1080), R, T, E, F, cv::CALIB_USE_INTRINSIC_GUESS,cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 100, 1e-5));                                                                                                                        
+	// std::cout << "Stereo Calibration done with RMS error = " << rms << std::endl;
+
+	return rms;
+}
+
 
 } // namespace stereo_cam
 
 int main(int argc,char** argv)
 {
+
+	// std::vector<std::string> image_list;
+	// for (int i = 0; i <= 34; i++) {
+	// 	image_list.push_back("./left_right_image/left" + std::to_string(i) + ".jpg");
+	// 	image_list.push_back("./left_right_image/right" + std::to_string(i) + ".jpg");
+	// }
+
+	// std::cout<< "Starting Search" << std::endl;
+
+	//  // Calibrate with all images to get baseline RMS
+    // double base_rms = stereo_cam::StereoCalibrationCustom(image_list, 6, 4, 30, false);
+    // std::cout << "Base RMS with all images: " << base_rms << std::endl;
+
+    // double worst_increase = -std::numeric_limits<double>::infinity();
+    // int worst_pair_idx = -1;
+    // double new_rms = 0.0;
+
+    // int num_pairs = image_list.size() / 2;
+
+    // for (int i = 0; i < num_pairs; ++i) {
+    //     std::vector<std::string> reduced_list;
+
+    //     // Copy all images except this pair
+    //     for (int j = 0; j < num_pairs; ++j) {
+    //         if (j != i) {
+    //             reduced_list.push_back(image_list[2*j]);
+    //             reduced_list.push_back(image_list[2*j + 1]);
+    //         }
+    //     }
+
+    //     // Calibrate without this pair
+    //     double rms = stereo_cam::StereoCalibrationCustom(reduced_list, 6, 4, 30, false);
+    //     double improvement = base_rms - rms;
+
+    //     std::cout << "Removing pair " << i
+    //               << " => RMS: " << rms
+    //               << ", improvement: " << improvement << std::endl;
+
+    //     if (improvement > worst_increase) {
+    //         worst_increase = improvement;
+    //         worst_pair_idx = i;
+    //         new_rms = rms;
+    //     }
+    // }
+
+    // if (worst_pair_idx >= 0) {
+    //     std::cout << "\nPair contributing most to RMS error: " << worst_pair_idx
+    //               << " (left: " << image_list[2 * worst_pair_idx]
+    //               << ", right: " << image_list[2 * worst_pair_idx + 1] << ")"
+    //               << "\nNew RMS without this pair: " << new_rms << std::endl;
+    // } else {
+    //     std::cout << "No pair identified as worst contributor." << std::endl;
+    // }
+
 	rclcpp::init(argc, argv);
 	auto node = std::make_shared<stereo_cam::StereoCalibrator>();
 	

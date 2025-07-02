@@ -1,7 +1,8 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, TimerAction
 from launch.substitutions import LaunchConfiguration
-from launch_ros.actions import Node
+from launch_ros.actions import Node, ComposableNodeContainer
+from launch_ros.descriptions import ComposableNode
 from ament_index_python.packages import get_package_share_directory
 import os
 
@@ -32,16 +33,24 @@ def generate_launch_description():
         )
     ]
 
-    # Stereo camera node with intra-process communication
-    stereo_node = Node(
-        package='stereo_cam',
-        executable='stereo_node',
-        parameters=[os.path.join(pkg_dir, 'config', 'cameras', 'laptop_camera_params.yaml')],
+    # Composable container for stereo_node
+    stereo_container = ComposableNodeContainer(
+        name='stereo_container',
+        namespace='',
+        package='rclcpp_components',
+        executable='component_container_mt',
+        composable_node_descriptions=[
+            ComposableNode(
+                package='stereo_cam',
+                plugin='stereo_cam::StereoNode',
+                name='stereo_node',
+                parameters=[os.path.join(pkg_dir, 'config', 'cameras', 'laptop_camera_params.yaml')],
+            ),
+        ],
         output='screen',
-        arguments=['--use-intra-process-comms']
     )
 
-    # Calibration node with intra-process communication - delayed start
+    # Calibration node with delayed start
     calib_node = TimerAction(
         period=3.0,  # 3 second delay
         actions=[
@@ -62,7 +71,7 @@ def generate_launch_description():
 
     return LaunchDescription(
         calib_args + [
-            stereo_node,
+            stereo_container,
             calib_node
         ]
-    ) 
+    )
