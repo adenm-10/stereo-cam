@@ -89,7 +89,7 @@ def compose_perception(context):
             package='stereo_image_proc',
             plugin='stereo_image_proc::DisparityNode',
             name='disparity_node',
-            parameters=[{disparity_params}],
+            parameters=[disparity_params],
             extra_arguments=[
                 {'use_intra_process_comms': True},
             ],
