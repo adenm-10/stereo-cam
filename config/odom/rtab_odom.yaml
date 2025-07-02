@@ -7,7 +7,7 @@ rtabmap_odom:
     approx_sync_max_interval: 0.01
     queue_size: 3
 
-    Reg/Force3DoF: true
+    Reg/Force3DoF: "true"
 
     Rtabmap/LoggerLeve: "3"
 
