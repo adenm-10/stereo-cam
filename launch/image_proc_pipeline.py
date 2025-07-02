@@ -29,6 +29,10 @@ def compose_perception(context):
         pkg_dir, 'config/odom/rtab_odom.yaml'
     ))
 
+    disparity_params = ParameterFile(os.path.join(
+        pkg_dir, 'config/disparity.yaml'
+    ))
+
     # build /robot_description once so the same ParameterValue is reused
     urdf_file = os.path.join(pkg_dir, 'urdf', 'stereo_camera.urdf.xacro')
     robot_description = {
@@ -45,7 +49,6 @@ def compose_perception(context):
             parameters=[
                 cam_cfg,
                 robot_description,
-                {'enable_depth':  LaunchConfiguration('enable_depth')},
             ],
             extra_arguments=[
                 {'use_intra_process_comms': True},
@@ -86,9 +89,11 @@ def compose_perception(context):
             package='stereo_image_proc',
             plugin='stereo_image_proc::DisparityNode',
             name='disparity_node',
+            parameters=[{disparity_params}],
             extra_arguments=[
                 {'use_intra_process_comms': True},
-            ]
+            ],
+            condition=IfCondition(LaunchConfiguration('enable_disparity')),
         ),
         # 4 stereo VO
         ComposableNode(
@@ -128,11 +133,10 @@ def generate_launch_description():
 
         # CLI args (same semantics as your legacy file)
         DeclareLaunchArgument('use_raspi',  default_value='false'),
-        DeclareLaunchArgument('enable_depth', default_value='false'),
-        DeclareLaunchArgument('rviz',       default_value='false'),
         DeclareLaunchArgument('namespace',  default_value=''),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
         DeclareLaunchArgument('log_level', default_value='WARN'),
+        DeclareLaunchArgument('enable_disparity', default_value='true'),
 
         # one container with everything
         OpaqueFunction(function=compose_perception),
@@ -152,18 +156,5 @@ def generate_launch_description():
             }],
             output='screen',
             arguments=['--ros-args', '--log-level', 'warn']
-        ),
-
-        # optional RViz
-        Node(
-            condition=IfCondition(LaunchConfiguration('rviz')),
-            package='rviz2',
-            executable='rviz2',
-            name='rviz2',
-            arguments=['-d', os.path.join(
-                get_package_share_directory('stereo_cam'),
-                'config', 'stereo_cam.rviz'
-            )],
-            output='screen'
         ),
     ])

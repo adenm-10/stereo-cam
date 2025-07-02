@@ -14,9 +14,6 @@ def generate_launch_description():
     ekf_config_path = os.path.join(pkg_dir, 'config', 'odom', 'ekf.yaml')
     ekf_params = ParameterFile(ekf_config_path)
 
-    rtab_odom_config_path = os.path.join(pkg_dir, 'config', 'odom', 'rtab_odom.yaml')
-    rtab_odom_params = ParameterFile(rtab_odom_config_path)
-
     mpu_imu_config_path = os.path.join(pkg_dir, 'config', 'odom', 'mpu_imu.yaml')
     mpu_imu_params = ParameterFile(mpu_imu_config_path)
 
@@ -39,36 +36,13 @@ def generate_launch_description():
                 PathJoinSubstitution([
                     get_package_share_directory('stereo_cam'),
                     'launch',
-                    'stereo_cam.launch.py'
+                    'image_proc_pipeline.launch.py'
                 ])
             ),
             launch_arguments={
                 'use_raspi': 'true',
-                'enable_depth': 'false',
-                'enable_rect': 'true',
+                'enable_disparity': 'false',
             }.items()
-        ),
-
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                PathJoinSubstitution([
-                    get_package_share_directory('stereo_cam'),
-                    'launch',
-                    # 'stereo_image_proc.launch.py'
-                    'stereo_image_rect.launch.py'
-                ])
-            ),
-            launch_arguments={
-                # 'namespace': 'camera'
-            }.items(),
-        ),
-
-        # 2. Stereo visual odometry
-        Node(
-            package='rtabmap_odom',
-            executable='stereo_odometry',
-            name='rtabmap_odom',
-            parameters=[rtab_odom_params]
         ),
 
         # 3. EKF Node from robot_localization
