@@ -1,13 +1,17 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="stereo_camera">
 
+  <!-- Constants -->
   <xacro:property name="M_PI" value="3.1415926535897931" />
   <xacro:property name="baseline" value="0.0152" /> <!-- 60mm -->
   <xacro:property name="camera_width" value="0.085" /> <!-- 85mm -->
   <xacro:property name="camera_height" value="0.024" /> <!-- 24mm -->
-  
+
+  <!-- Parameter for camera and IMU height above ground -->
+  <xacro:property name="camera_height_above_ground" value="0.7"/> <!-- adjust this value (meters) -->
+
   <xacro:macro name="stereo_camera_macro" params="parent *origin">
-    <!-- Base link -->
+    <!-- Base camera box -->
     <link name="camera_link">
       <visual>
         <geometry>
@@ -24,7 +28,7 @@
       </collision>
     </link>
 
-    <!-- Left camera -->
+    <!-- Left camera optical frame -->
     <link name="left_camera_optical_frame"/>
     <joint name="left_camera_joint" type="fixed">
       <parent link="camera_link"/>
@@ -32,7 +36,7 @@
       <origin xyz="${-baseline/2} 0 0" rpy="0 0 0"/>
     </joint>
 
-    <!-- Right camera -->
+    <!-- Right camera optical frame -->
     <link name="right_camera_optical_frame"/>
     <joint name="right_camera_joint" type="fixed">
       <parent link="camera_link"/>
@@ -40,7 +44,7 @@
       <origin xyz="${baseline/2} 0 0" rpy="0 0 0"/>
     </joint>
 
-    <!-- IMU -->
+    <!-- IMU link -->
     <link name="imu_link"/>
     <joint name="imu_joint" type="fixed">
       <parent link="camera_link"/>
@@ -48,20 +52,21 @@
       <origin xyz="0 0 0" rpy="0 0 0"/>
     </joint>
 
-    <!-- Mount to parent -->
+    <!-- Mount camera to parent (base_link), offset vertically -->
     <joint name="camera_mount_joint" type="fixed">
       <xacro:insert_block name="origin"/>
       <parent link="${parent}"/>
       <child link="camera_link"/>
+      <origin xyz="0 0 ${camera_height_above_ground}" rpy="0 0 0"/>
     </joint>
   </xacro:macro>
 
   <!-- Create base link -->
   <link name="base_link"/>
 
-  <!-- Instantiate the stereo camera -->
+  <!-- Instantiate stereo camera -->
   <xacro:stereo_camera_macro parent="base_link">
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:stereo_camera_macro>
 
-</robot> 
+</robot>

@@ -9,12 +9,13 @@ from ament_index_python.packages import get_package_share_directory
 from launch_ros.parameter_descriptions import ParameterFile
 
 def generate_launch_description():
-    pkg_dir = get_package_share_directory('stereo_cam')
+    stereo_pkg_dir = get_package_share_directory('stereo_cam')
+    imu_pkg_dir = get_package_share_directory('mpu9250driver')
 
-    ekf_config_path = os.path.join(pkg_dir, 'config', 'odom', 'ekf.yaml')
+    ekf_config_path = os.path.join(stereo_pkg_dir, 'config', 'odom', 'ekf.yaml')
     ekf_params = ParameterFile(ekf_config_path)
 
-    mpu_imu_config_path = os.path.join(pkg_dir, 'config', 'odom', 'mpu_imu.yaml')
+    mpu_imu_config_path = os.path.join(imu_pkg_dir, 'config', 'odom', 'mpu_imu.yaml')
     mpu_imu_params = ParameterFile(mpu_imu_config_path)
 
     return LaunchDescription([
