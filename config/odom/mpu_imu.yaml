@@ -1,6 +1,6 @@
 mpu9250driver_node:
   ros__parameters:
-    frequency: 20
+    frequency: 15
 
     # IMU configuration
     gyro_range: 0              # ±250°/s

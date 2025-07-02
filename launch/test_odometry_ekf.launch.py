@@ -49,6 +49,20 @@ def generate_launch_description():
             }.items()
         ),
 
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution([
+                    get_package_share_directory('stereo_cam'),
+                    'launch',
+                    # 'stereo_image_proc.launch.py'
+                    'stereo_image_rect.launch.py'
+                ])
+            ),
+            launch_arguments={
+                # 'namespace': 'camera'
+            }.items(),
+        ),
+
         # 2. Stereo visual odometry
         Node(
             package='rtabmap_odom',

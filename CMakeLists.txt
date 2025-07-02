@@ -23,6 +23,8 @@ find_package(PkgConfig REQUIRED)
 find_package(ament_index_cpp REQUIRED)
 find_package(pcl_conversions REQUIRED)
 find_package(PCL REQUIRED COMPONENTS filters)
+find_package(message_filters REQUIRED)
+find_package(Threads          REQUIRED)   # replaces raw ‘pthread’
 
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
@@ -39,7 +41,7 @@ include_directories(
 )
 
 # lccv_core library
-add_library(lccv_core
+add_library(lccv_core SHARED
   src/lccv/lccv.cpp
   src/lccv/libcamera_app.cpp
   src/lccv/libcamera_app_options.cpp
@@ -53,11 +55,11 @@ target_include_directories(lccv_core PUBLIC
 target_link_libraries(lccv_core PUBLIC
   PkgConfig::LIBCAMERA
   ${OpenCV_LIBS}
-  pthread
+  Threads::Threads
 )
 
 # cv_cam library
-add_library(cv_cam
+add_library(cv_cam SHARED
   src/cv_cam/cv_cam.cpp
 )
 
@@ -69,7 +71,7 @@ target_include_directories(cv_cam PUBLIC
 target_link_libraries(cv_cam PUBLIC
   PkgConfig::LIBCAMERA
   ${OpenCV_LIBS}
-  pthread
+  Threads::Threads
 )
 
 # PCL
@@ -87,15 +89,15 @@ ament_target_dependencies(obstacle_detector
 target_link_libraries(obstacle_detector ${PCL_LIBRARIES})
 
 # stereo_node executable
-add_executable(stereo_node 
-  src/main.cpp
+add_library(stereo_node SHARED
   src/stereo_node.cpp
   src/depth_node.cpp
   src/calib_utils.cpp
 )
 
-target_include_directories(stereo_node PRIVATE
+target_include_directories(stereo_node PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
 )
 
 ament_target_dependencies(stereo_node
@@ -117,6 +119,23 @@ target_link_libraries(stereo_node
   cv_cam
 )
 
+rclcpp_components_register_nodes(stereo_node
+  "stereo_cam::StereoNode")
+
+install(TARGETS
+  stereo_node
+  lccv_core
+  cv_cam
+  EXPORT export_${PROJECT_NAME}
+  LIBRARY DESTINATION lib     # or lib/${PROJECT_NAME} – just be consistent
+)
+
+ament_export_targets(export_${PROJECT_NAME})
+ament_export_dependencies(
+  rclcpp
+  rclcpp_components
+)
+
 # stereo_calib executable
 add_executable(stereo_calib 
   src/stereo_calib.cpp
@@ -133,10 +152,7 @@ ament_target_dependencies(stereo_calib
 
 # Install targets
 install(TARGETS
-  stereo_node
   stereo_calib
-  lccv_core
-  cv_cam
   obstacle_detector
   DESTINATION lib/${PROJECT_NAME}
 )

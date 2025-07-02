@@ -5,7 +5,7 @@ rtabmap_odom:
     subscribe_stereo: true
     approx_sync: true
     queue_size: 3
-    approx_sync_max_interval: 0.02
+    approx_sync_max_interval: 0.01
 
     Rtabmap/LoggerLeve: "3"
 

@@ -53,15 +53,6 @@ def generate_launch_description():
 
     return LaunchDescription([
         DeclareLaunchArgument(
-            name='approximate_sync', default_value='True',
-            description='Whether to use approximate synchronization of topics. Set to true if '
-                        'the left and right cameras do not produce exactly synced timestamps.'
-        ),
-        DeclareLaunchArgument(
-            name='launch_image_proc', default_value='True',
-            description='Whether to launch debayer and rectify nodes from image_proc.'
-        ),
-        DeclareLaunchArgument(
             name='namespace', default_value='',
             description='Namespace for all components loaded'
         ),
@@ -100,11 +91,10 @@ def generate_launch_description():
                     PythonLaunchDescriptionSource([
                         FindPackageShare('image_proc'), '/launch/image_proc.launch.py'
                     ]),
-                    launch_arguments={'container': LaunchConfiguration('container'),
-                                      'namespace': LaunchConfiguration('left_namespace')}.items()
+                    launch_arguments={'container': '',
+                                      'namespace': 'left'}.items()
                 ),
             ],
-            condition=IfCondition(LaunchConfiguration('launch_image_proc')),
         ),
         GroupAction(
             [
@@ -113,10 +103,9 @@ def generate_launch_description():
                     PythonLaunchDescriptionSource([
                         FindPackageShare('image_proc'), '/launch/image_proc.launch.py'
                     ]),
-                    launch_arguments={'container': LaunchConfiguration('container'),
-                                      'namespace': LaunchConfiguration('right_namespace')}.items()
+                    launch_arguments={'container': '',
+                                      'namespace': 'right'}.items()
                 ),
             ],
-            condition=IfCondition(LaunchConfiguration('launch_image_proc')),
         )
     ])

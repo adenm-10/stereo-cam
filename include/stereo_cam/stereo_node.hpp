@@ -66,7 +66,7 @@ struct ArducamCameraConfig {
 
 class StereoNode : public rclcpp::Node {
 public:
-    explicit StereoNode(const rclcpp::NodeOptions& options, const std::string& name = "stereo_node");
+    explicit StereoNode(const rclcpp::NodeOptions& options);
     ~StereoNode();
 
     void initialize();

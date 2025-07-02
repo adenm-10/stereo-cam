@@ -62,8 +62,8 @@ const std::vector<ArducamCameraConfig> ARDUCAM_SUPPORTED_MODES = {
     {"MJPG", "/dev/video4", "Raspi", 320,  240,  30},
 };
 
-StereoNode::StereoNode(const rclcpp::NodeOptions& options, const std::string& name)
-    : Node(name, options) {
+StereoNode::StereoNode(const rclcpp::NodeOptions& options)
+    : Node("stereo_node", options) {
     
     // Only declare and get parameters in constructor
     this->declare_parameter("left_format", "");
@@ -177,9 +177,9 @@ void StereoNode::initialize() {
         pipeline << "v4l2src device=" << left_port_ << " io-mode=2 ! "
                  << "video/x-h264,width=" << width_ << ",height=" << height_
                  << ",framerate=" << frame_rate_ << "/1 ! "
-                //  << "h264parse ! avdec_h264 ! videoconvert ! "
-                  << "video/x-raw,format=BGR ! appsink";
-                 << "video/x-raw,format=MONO8 ! appsink";
+                 << "h264parse ! avdec_h264 ! videoconvert ! "
+                 << "video/x-raw,format=BGR ! appsink";
+                //  << "video/x-raw,format=MONO8 ! appsink";
         
         left_gst_str = pipeline.str();
 

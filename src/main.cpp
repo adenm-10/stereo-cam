@@ -10,7 +10,7 @@ int main(int argc, char * argv[])
     options.use_intra_process_comms(true);
     rclcpp::executors::MultiThreadedExecutor executor;
     
-    auto stereo_node = std::make_shared<stereo_cam::StereoNode>(options, "stereo_node");
+    auto stereo_node = std::make_shared<stereo_cam::StereoNode>(options);
     
     // Add node to executor first
     executor.add_node(stereo_node);
