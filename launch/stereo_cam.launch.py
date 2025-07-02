@@ -52,13 +52,13 @@ def launch_setup(context, *args, **kwargs):
     return [
         stereo_container,
 
-        Node(
-            package='robot_state_publisher',
-            executable='robot_state_publisher',
-            name='robot_state_publisher',
-            parameters=[{'robot_description': robot_description}],
-            output='screen'
-        ),
+        # Node(
+        #     package='robot_state_publisher',
+        #     executable='robot_state_publisher',
+        #     name='robot_state_publisher',
+        #     parameters=[{'robot_description': robot_description}],
+        #     output='screen'
+        # ),
         
         Node(
             package='rviz2',
