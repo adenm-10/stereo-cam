@@ -45,6 +45,23 @@ def generate_launch_description():
                 'enable_disparity': 'false',
             }.items()
         ),
+
+        Node(
+            package='imu_filter_madgwick',
+            executable='imu_filter_madgwick_node',
+            name='imu_filter_madgwick_node',
+            output='screen',
+            parameters=[{
+                'use_mag': False,
+                'publish_tf': False,
+                'remove_gravity_vector': False,
+                'gain': 0.1
+            }],
+            remappings=[
+                ('/imu/data_raw', '/imu'),   # Input from your IMU driver
+                ('/imu/data', '/imu/data')   # Filtered output (used by EKF)
+            ]
+        ),
         
         # 3. EKF Node from robot_localization
         Node(
