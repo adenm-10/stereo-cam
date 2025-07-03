@@ -89,7 +89,10 @@ bool CalibrationUtils::updateCameraInfo(
               << T.at<double>(2) << "] mm" << std::endl;
 
     // Scale calibration parameters if current resolution differs from calibration resolution
-    if (left_info.width != image_size.width || left_info.height != image_size.height) {
+    if (left_info.width != image_size.width || left_info.height != image_size.height) { 
+
+        std::cout << "Scaling calibration parameters" << std::endl;
+
         double sx = static_cast<double>(left_info.width) / image_size.width;
         double sy = static_cast<double>(left_info.height) / image_size.height;
 
