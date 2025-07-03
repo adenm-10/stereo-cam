@@ -32,17 +32,20 @@
     <link name="left_camera_optical_frame"/>
     <joint name="left_camera_joint" type="fixed">
       <parent link="camera_link"/>
-      <child link="left_camera_optical_frame"/>
-      <origin xyz="${-baseline/2} 0 0" rpy="0 0 0"/>
+      <child  link="left_camera_optical_frame"/>
+      <!-- left camera sits +Y -->
+      <origin xyz="0 ${baseline/2} 0" rpy="0 0 0"/>
     </joint>
-
+    
     <!-- Right camera optical frame -->
     <link name="right_camera_optical_frame"/>
     <joint name="right_camera_joint" type="fixed">
       <parent link="camera_link"/>
-      <child link="right_camera_optical_frame"/>
-      <origin xyz="${baseline/2} 0 0" rpy="0 0 0"/>
+      <child  link="right_camera_optical_frame"/>
+      <!-- right camera sits –Y -->
+      <origin xyz="0 ${-baseline/2} 0" rpy="0 0 0"/>
     </joint>
+    
 
     <!-- IMU link -->
     <link name="imu_link"/>
