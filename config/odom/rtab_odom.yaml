@@ -9,35 +9,23 @@ rtabmap_odom:
 
     Reg/Force3DoF: "true"
 
-    Rtabmap/LoggerLeve: "3"
-
     # Odometry tuning
     Vis/MinInliers: "20"
-    Odom/Strategy: "1"
-    Odom/MaxGuessDistance: "0.3"
+    Odom/Strategy: "0"
     StereoEgoMotion/MaxTranslation: "0.3"
-    Vis/CorType: "1"
-
-    Odom/FilteringStrategy: "0"
-    Odom/FilterSmoothFactor: "0.1"  # Higher trust in predicted motion
-    # Odom/GuessMotion: "true"        # Predict motion from past velocity
+    Vis/CorType: "0"
 
     publish_tf: false
     publish_null_when_lost: true
 
-    # # Optional but useful for tuning
-    # stereo_from_depth: false
-    # stereo_fx: 0.0  # Overwritten by camera_info
-    # stereo_baseline: 0.0  # Overwritten by camera_info
-
     # Filtering / Motion model
     # wait_for_transform: false
-    wait_imu_to_init: false  # set to true if using IMU initialization
+    # wait_imu_to_init: false
 
-    OdomF2M/MaxSize: "1000"
-    Odom/MaxFeatures: "600"
+    OdomF2M/MaxSize: "1500"
+    Odom/MaxFeatures: "800"
     Odom/MinInliers: "20"
-    Odom/FeatureType: "ORB"  # Try SURF or SIFT if CPU permits
+    Vis/FeatureType: "0"  # Try SURF or SIFT if CPU permits
     Odom/ResetCountdown: "1"
 
 
@@ -110,7 +98,7 @@ rtabmap_odom:
 # Param: Odom/ScanKeyFrameThr = "0.9"                        [[Geometry] Create a new keyframe when the number of ICP inliers drops under this ratio of points in last frame's scan. Setting the value to 0 means that a keyframe is created for each processed frame.]
 # Param: Odom/Strategy = "0"                                 [0=Frame-to-Map (F2M) 1=Frame-to-Frame (F2F) 2=Fovis 3=viso2 4=DVO-SLAM 5=ORB_SLAM2 6=OKVIS 7=LOAM 8=MSCKF_VIO 9=VINS-Fusion 10=OpenVINS 11=FLOAM 12=Open3D]
 # Param: Odom/VisKeyFrameThr = "150"                         [[Visual] Create a new keyframe when the number of inliers drops under this threshold. Setting the value to 0 means that a keyframe is created for each processed frame.]
-# Param: OdomF2M/BundleAdjustment = "1"                      [Local bundle adjustment: 0=disabled, 1=g2o, 2=cvsba, 3=Ceres.]
+# Param: OdomF2M/BundleAdjustment = "1"                      [Local bundle adjustment: 0=Odom/Strategydisabled, 1=g2o, 2=cvsba, 3=Ceres.]
 # Param: OdomF2M/BundleAdjustmentMaxFrames = "10"            [Maximum frames used for bundle adjustment (0=inf or all current frames in the local map).]
 # Param: OdomF2M/BundleAdjustmentMaxKeyFramesPerFeature = "0" [Maximum keyframes per feature for bundle adjustment. 0 means not limit.]
 # Param: OdomF2M/BundleAdjustmentMinMotion = "0.0"           [To create a new keyframe with bundle adjustment, a minimum motion (in pixels) can be required. The motion is computed by the average distance between inliers of the previous keyframe and new frame.]

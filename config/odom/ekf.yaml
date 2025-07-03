@@ -6,7 +6,7 @@ ekf_filter_node:
 
     # Visual odometry — use only twist (velocity), ignore pose
     odom0: /odom
-    odom0_config: [true, true, false, # xyz pose
+    odom0_config: [false, false, false, # xyz pose
                    false, false, false, # rpy pose
                    true, true, false,   # linear velocity 
                    false, false, true,  # angular velocity
