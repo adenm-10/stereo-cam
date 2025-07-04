@@ -2,10 +2,15 @@ rtabmap_odom:
   ros__parameters:
     frame_id: "base_link"  # Robot's body frame
     odom_frame_id: "odom"  # Output odometry frame
-    subscribe_stereo: True
     approx_sync: True
     approx_sync_max_interval: 0.01
     queue_size: 3
+    
+    subscribe_stereo: True
+    subscribe_depth: False
+    subscribe_rgb: False
+    subscribe_rgbd: False
+    subscribe_scan: False
 
     Reg/Force3DoF: "true"
 
