@@ -18,12 +18,11 @@ rtabmap_odom:
     Odom/FilteringStrategy: "0"                        # [0=No filtering 1=Kalman filtering 2=Particle filtering. This filter is used to smooth the odometry output.]
 
     # Feature Identification TUning
-    Vis/MaxFeatures: "800"                  # [0 no limits.]
-    Vis/MaxDepth: "10"                      # [Max depth of the features (0 means no limit).]
+    Vis/MaxFeatures: "2000"                  # [0 no limits.]
+    Vis/MaxDepth: "0"                      # [Max depth of the features (0 means no limit).]
     Vis/RoiRatios: "0.0 0.0 0.0 0.0"        # [Region of interest ratios [left, right, top, bottom].]
-    Vis/FeatureType: "2" #better            # [0=SURF 1=SIFT 2=ORB 3=FAST/FREAK 4=FAST/BRIEF 5=GFTT/FREAK 6=GFTT/BRIEF 7=BRISK 8=GFTT/ORB 9=KAZE 10=ORB-OCTREE 11=SuperPoint 12=SURF/FR>
+    Vis/FeatureType: "8" #better            # [0=SURF 1=SIFT 2=ORB 3=FAST/FREAK 4=FAST/BRIEF 5=GFTT/FREAK 6=GFTT/BRIEF 7=BRISK 8=GFTT/ORB 9=KAZE 10=ORB-OCTREE 11=SuperPoint 12=SURF/FR>
     Vis/CorType: "1" #better                # [Correspondences computation approach: 0=Features Matching, 1=Optical Flow]
-    
 
 
 # Param: OdomF2M/BundleAdjustment = "1"                      [Local bundle adjustment: 0=Odom/Strategydisabled, 1=g2o, 2=cvsba, 3=Ceres.]
