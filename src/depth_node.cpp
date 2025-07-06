@@ -184,7 +184,7 @@ void DepthNode::imageCallback(
         depth_pub_->publish(*depth_msg);
 
         // Generate and publish point cloud
-        depthToPointCloud(depth_map, left_msg->header);
+        // depthToPointCloud(depth_map, left_msg->header);
     }
     catch (const cv_bridge::Exception& e) {
         RCLCPP_ERROR(this->get_logger(), "CV bridge exception: %s", e.what());
@@ -244,3 +244,6 @@ void DepthNode::depthToPointCloud(const cv::Mat& depth_map,
 }
 
 }  // namespace stereo_cam 
+
+#include <rclcpp_components/register_node_macro.hpp>
+RCLCPP_COMPONENTS_REGISTER_NODE(stereo_cam::DepthNode)

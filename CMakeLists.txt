@@ -91,7 +91,6 @@ target_link_libraries(obstacle_detector ${PCL_LIBRARIES})
 # stereo_node executable
 add_library(stereo_node SHARED
   src/stereo_node.cpp
-  src/depth_node.cpp
   src/calib_utils.cpp
 )
 
@@ -134,6 +133,41 @@ ament_export_targets(export_${PROJECT_NAME})
 ament_export_dependencies(
   rclcpp
   rclcpp_components
+)
+
+# depth node composable node
+add_library(depth_node_component SHARED
+  src/depth_node.cpp
+)
+target_include_directories(depth_node_component PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+ament_target_dependencies(depth_node_component
+  rclcpp
+  rclcpp_components
+  sensor_msgs
+  std_msgs
+  stereo_msgs
+  image_transport
+  message_filters
+  cv_bridge
+)
+target_link_libraries(depth_node_component
+  ${OpenCV_LIBRARIES}
+)
+
+# Register component with rclcpp_components
+rclcpp_components_register_node(depth_node_component
+  PLUGIN "stereo_cam::DepthNode"
+  EXECUTABLE depth_node_exe
+)
+
+install(
+  TARGETS depth_node_component depth_node_exe
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
 # stereo_calib executable

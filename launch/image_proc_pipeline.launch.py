@@ -114,9 +114,9 @@ def compose_perception(context):
         ),
 
         ComposableNode(
-            package='stereo_image_proc',
-            plugin='stereo_image_proc::PointCloudXYZRGBNode',
-            name='point_cloud_xyzrgb_node',
+            package='stereo_cam',
+            plugin='stereo_cam::DepthNode',
+            name='depth_image_node',
             extra_arguments=[
                 {'use_intra_process_comms': True},
             ],
@@ -129,9 +129,9 @@ def compose_perception(context):
             name='rtabmap_odom',
             parameters=[rtab_rgbd_params],
             remappings=[
-                ('rgb/image', '/left/image_rect_color'),
-                ('depth/image', '/stereo/depth_registered/image_raw'),
-                ('rgb/camera_info', '/left/camera_info_rect'),
+                ('rgb/image', '/left/image_rect'),
+                ('rgb/camera_info', '/left/camera_info'),
+                ('depth/image', '/camera/depth/image_raw'),
             ],
             extra_arguments=[
                 {'use_intra_process_comms': True},
