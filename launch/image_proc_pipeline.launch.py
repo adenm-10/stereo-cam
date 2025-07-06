@@ -106,7 +106,7 @@ def compose_perception(context):
             extra_arguments=[
                 {'use_intra_process_comms': True},
             ],
-            condition=IfCondition(LaunchConfiguration('rgb_mode')),
+            condition=IfCondition(LaunchConfiguration('rgbd_mode')),
         ),
     ]
 
@@ -139,7 +139,7 @@ def generate_launch_description():
         DeclareLaunchArgument('namespace',  default_value=''),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
         DeclareLaunchArgument('log_level', default_value='WARN'),
-        DeclareLaunchArgument('rgb_mode', default_value='true'),
+        DeclareLaunchArgument('rgbd_mode', default_value='true'),
 
         # one container with everything
         OpaqueFunction(function=compose_perception),
