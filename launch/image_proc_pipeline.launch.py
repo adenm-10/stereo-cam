@@ -29,6 +29,10 @@ def compose_perception(context):
         pkg_dir, 'config/odom/rtab_odom_stereo.yaml'
     ))
 
+    rtab_rgbd_params = ParameterFile(os.path.join(
+        pkg_dir, 'config/odom/rtab_odom_stereo.yaml'
+    ))
+
     disparity_params = ParameterFile(os.path.join(
         pkg_dir, 'config/disparity.yaml'
     ))
@@ -85,7 +89,7 @@ def compose_perception(context):
             ]
         ),
 
-        # 4 stereo VO
+        # 4a Stereo Visual Odometry
         ComposableNode(
             package='rtabmap_odom',
             plugin='rtabmap_odom::StereoOdometry',
@@ -97,7 +101,7 @@ def compose_perception(context):
             condition=UnlessCondition(LaunchConfiguration('rgbd_mode'))
         ),
 
-        # 3 RGBD VO
+        # 4b RGBD Visual Odometry
         ComposableNode(
             package='stereo_image_proc',
             plugin='stereo_image_proc::DisparityNode',
@@ -108,6 +112,33 @@ def compose_perception(context):
             ],
             condition=IfCondition(LaunchConfiguration('rgbd_mode')),
         ),
+
+        ComposableNode(
+            package='stereo_image_proc',
+            plugin='stereo_image_proc::PointCloudXYZRGBNode',
+            name='point_cloud_xyzrgb_node',
+            extra_arguments=[
+                {'use_intra_process_comms': True},
+            ],
+            condition=IfCondition(LaunchConfiguration('rgbd_mode')),
+        ),
+
+        ComposableNode(
+            package='rtabmap_odom',
+            plugin='rtabmap_odom::RGBDOdometry',
+            name='rtabmap_odom',
+            parameters=[rtab_rgbd_params],
+            remappings=[
+                ('rgb/image', '/left/image_rect_color'),
+                ('depth/image', '/stereo/depth_registered/image_raw'),
+                ('rgb/camera_info', '/left/camera_info_rect'),
+            ],
+            extra_arguments=[
+                {'use_intra_process_comms': True},
+            ],
+            condition=IfCondition(LaunchConfiguration('rgbd_mode'))
+        ),
+
     ]
 
     # container name (auto unless user overrides)
@@ -136,10 +167,10 @@ def generate_launch_description():
 
         # CLI args (same semantics as your legacy file)
         DeclareLaunchArgument('use_raspi',  default_value='false'),
-        DeclareLaunchArgument('namespace',  default_value=''),
-        DeclareLaunchArgument('use_sim_time', default_value='false'),
+        DeclareLaunchArgument('rgbd_mode', default_value='false'),
         DeclareLaunchArgument('log_level', default_value='WARN'),
-        DeclareLaunchArgument('rgbd_mode', default_value='true'),
+        DeclareLaunchArgument('use_sim_time', default_value='false'),
+        DeclareLaunchArgument('namespace',  default_value=''),
 
         # one container with everything
         OpaqueFunction(function=compose_perception),
