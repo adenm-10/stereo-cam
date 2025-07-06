@@ -7,9 +7,9 @@ rtabmap_odom:
     queue_size: 3
     
     subscribe_stereo: False
-    subscribe_depth: False
-    subscribe_rgb: False
-    subscribe_rgbd: True
+    subscribe_depth: True
+    subscribe_rgb: True
+    subscribe_rgbd: False
     subscribe_scan: False
 
     Reg/Force3DoF: "true"
@@ -20,12 +20,12 @@ rtabmap_odom:
     # Odometry tuning
     Odom/ResetCountdown: "1"
     Odom/Strategy: "1"                                 # [0=Frame-to-Map (F2M) 1=Frame-to-Frame (F2F) 2=Fovis 3=viso2 4=DVO-SLAM 5=ORB_SLAM2 6=OKVIS 7=LOAM 8=MSCKF_VIO 9=VINS-Fusion 1>
-    Odom/FilteringStrategy: "0"                        # [0=No filtering 1=Kalman filtering 2=Particle filtering. This filter is used to smooth the odometry output.]
+    # Odom/FilteringStrategy: "0"                        # [0=No filtering 1=Kalman filtering 2=Particle filtering. This filter is used to smooth the odometry output.]
 
-    # Feature Identification TUning
+    # Feature Identification Tuning
     Vis/MaxFeatures: "1500"                  # [0 no limits.]
-    Vis/MaxDepth: "5"                      # [Max depth of the features (0 means no limit).]
-    Vis/RoiRatios: "0.0 0.0 0.0 0.0"        # [Region of interest ratios [left, right, top, bottom].]
+    # Vis/MaxDepth: "5"                      # [Max depth of the features (0 means no limit).]
+    # Vis/RoiRatios: "0.0 0.0 0.0 0.0"        # [Region of interest ratios [left, right, top, bottom].]
     Vis/FeatureType: "8" #better            # [0=SURF 1=SIFT 2=ORB 3=FAST/FREAK 4=FAST/BRIEF 5=GFTT/FREAK 6=GFTT/BRIEF 7=BRISK 8=GFTT/ORB 9=KAZE 10=ORB-OCTREE 11=SuperPoint 12=SURF/FR>
     Vis/CorType: "1" #better                # [Correspondences computation approach: 0=Features Matching, 1=Optical Flow]
 

@@ -64,6 +64,7 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:stereo_camera_macro>
 
+  <!-- Ros2 gpio controllers -->
   <ros2_control name="ros2_control" type="system">
       <hardware>
           <plugin>gpio_controllers/Gpios</plugin>
