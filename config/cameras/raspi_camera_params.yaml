@@ -2,8 +2,8 @@ stereo_node:
   ros__parameters:
     enable_depth: false
 
-    image_width: 640
-    image_height: 360
+    image_width: 800
+    image_height: 600
     frame_rate: 30
 
     left_format: MJPG

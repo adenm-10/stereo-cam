@@ -3,7 +3,7 @@ from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument, OpaqueFunction, GroupAction
 )
-from launch.conditions import IfCondition
+from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import (
     LaunchConfiguration, PythonExpression, Command
 )
@@ -25,8 +25,8 @@ def compose_perception(context):
 
     log_level = LaunchConfiguration('log_level')
 
-    rtab_params = ParameterFile(os.path.join(
-        pkg_dir, 'config/odom/rtab_odom.yaml'
+    rtab_stereo_params = ParameterFile(os.path.join(
+        pkg_dir, 'config/odom/rtab_odom_stereo.yaml'
     ))
 
     disparity_params = ParameterFile(os.path.join(
@@ -84,7 +84,20 @@ def compose_perception(context):
                 {'use_intra_process_comms': True},
             ]
         ),
-        # 3 disparity
+
+        # 4 stereo VO
+        ComposableNode(
+            package='rtabmap_odom',
+            plugin='rtabmap_odom::StereoOdometry',
+            name='rtabmap_odom',
+            parameters=[rtab_stereo_params],
+            extra_arguments=[
+                {'use_intra_process_comms': True},
+            ],
+            condition=UnlessCondition(LaunchConfiguration('rgbd_mode'))
+        ),
+
+        # 3 RGBD VO
         ComposableNode(
             package='stereo_image_proc',
             plugin='stereo_image_proc::DisparityNode',
@@ -93,17 +106,7 @@ def compose_perception(context):
             extra_arguments=[
                 {'use_intra_process_comms': True},
             ],
-            condition=IfCondition(LaunchConfiguration('enable_disparity')),
-        ),
-        # 4 stereo VO
-        ComposableNode(
-            package='rtabmap_odom',
-            plugin='rtabmap_odom::StereoOdometry',
-            name='rtabmap_odom',
-            parameters=[rtab_params],
-            extra_arguments=[
-                {'use_intra_process_comms': True},
-            ]
+            condition=IfCondition(LaunchConfiguration('rgb_mode')),
         ),
     ]
 
@@ -136,7 +139,7 @@ def generate_launch_description():
         DeclareLaunchArgument('namespace',  default_value=''),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
         DeclareLaunchArgument('log_level', default_value='WARN'),
-        DeclareLaunchArgument('enable_disparity', default_value='true'),
+        DeclareLaunchArgument('rgb_mode', default_value='true'),
 
         # one container with everything
         OpaqueFunction(function=compose_perception),

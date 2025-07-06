@@ -24,36 +24,13 @@ rtabmap_odom:
 
     # Feature Identification TUning
     Vis/MaxFeatures: "2000"                  # [0 no limits.]
-    Vis/MaxDepth: "10"                      # [Max depth of the features (0 means no limit).]
+    Vis/MaxDepth: "5"                      # [Max depth of the features (0 means no limit).]
     Vis/RoiRatios: "0.0 0.0 0.0 0.0"        # [Region of interest ratios [left, right, top, bottom].]
     Vis/FeatureType: "8" #better            # [0=SURF 1=SIFT 2=ORB 3=FAST/FREAK 4=FAST/BRIEF 5=GFTT/FREAK 6=GFTT/BRIEF 7=BRISK 8=GFTT/ORB 9=KAZE 10=ORB-OCTREE 11=SuperPoint 12=SURF/FR>
     Vis/CorType: "1" #better                # [Correspondences computation approach: 0=Features Matching, 1=Optical Flow]
 
-
-# Param: OdomF2M/BundleAdjustment = "1"                      [Local bundle adjustment: 0=Odom/Strategydisabled, 1=g2o, 2=cvsba, 3=Ceres.]
-# Param: OdomF2M/BundleAdjustmentMaxFrames = "10"            [Maximum frames used for bundle adjustment (0=inf or all current frames in the local map).]
-# Param: OdomF2M/BundleAdjustmentMaxKeyFramesPerFeature = "0" [Maximum keyframes per feature for bundle adjustment. 0 means not limit.]
-# Param: OdomF2M/BundleAdjustmentMinMotion = "0.0"           [To create a new keyframe with bundle adjustment, a minimum motion (in pixels) can be required. The motion is computed by the average distance between inliers of the previous keyframe and new frame.]
-# Param: OdomF2M/BundleUpdateFeatureMapOnAllFrames = "false" [Update 3D local feature map on every frame with bundle adjustment. Recommended if Vis/DepthAsMask=false and Mem/UseOdomFeatures=true so that features without depth are better triangulated on every frame (not only on keyframes). If disabled, the feature map is updated only when a new keyframe is added (legacy approach).]
-# Param: OdomF2M/FloorThreshold = "0.0"                      [[Visual] Only track features in 3D feature map that are over this threshold (height in base frame). Can be useful to ignore reflections on the floor. 0 means disabled.]
-# Param: OdomF2M/InitDepthFactor = "0.05"                    [[Visual] Depth factor used to initialize depth of features without depth. Depth = Factor * fx.]
-# Param: OdomF2M/MaxNewFeatures = "0"                        [[Visual] Maximum features (sorted by keypoint response) added to local map from a new key-frame. 0 means no limit.]
-# Param: OdomF2M/MaxSize = "2000"                            [[Visual] Local map size: If > 0 (example 5000), the odometry will maintain a local map of X maximum words.]
-# Param: OdomF2M/ScanMaxSize = "2000"                        [[Geometry] Maximum local scan map size.]
-# Param: OdomF2M/ScanRange = "0"                             [[Geometry] Distance Range used to filter points of local map (when > 0). 0 means local map is updated using time and not range.]
-# Param: OdomF2M/ScanSubtractAngle = "45"                    [[Geometry] Max angle (degrees) used to filter points of a new added scan to local map (when "OdomF2M/ScanSubtractRadius">0). 0 means any angle.]
-# Param: OdomF2M/ScanSubtractRadius = "0.05"                 [[Geometry] Radius used to filter points of a new added scan to local map. This could match the voxel size of the scans.]
-# Param: OdomF2M/ValidDepthRatio = "0.75"                    [If a new frame has points without valid depth, they are added to local feature map only if points with valid depth on total points is over this ratio. Setting to 1 means no points without valid depth are added to local feature map.]
-
-
-
-
-
-
-
-
-
-
+    GFTT/MinDistance: '10'
+    GFTT/QualityLevel: '0.00001'
 
 # aden-mckinney@pierre:~/Desktop/classes/sd/Navigation_Assisted_Shopping_Cart/navis_ros2_ws$ ros2 run rtabmap_odom stereo_odometry --params
 # Param: BRIEF/Bytes = "32"                                  [Bytes is a length of descriptor in bytes. It can be equal 16, 32 or 64 bytes.]
