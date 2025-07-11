@@ -65,7 +65,7 @@
   </xacro:stereo_camera_macro>
 
   <!-- Ros2 gpio controllers -->
-  <ros2_control name="ros2_control" type="system">
+  <!-- <ros2_control name="ros2_control" type="system">
       <hardware>
           <plugin>gpio_controllers/Gpios</plugin>
           <param name="gpio_chip_name">gpiochip0</param>
@@ -76,6 +76,6 @@
           <param name="pin">17</param>
           <param name="direction">in</param>
       </gpio>
-  </ros2_control>
+  </ros2_control> -->
 
 </robot> 
