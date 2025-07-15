@@ -6,19 +6,8 @@ from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_directory
-from launch_ros.parameter_descriptions import ParameterFile
 
 def generate_launch_description():
-    pkg_dir = get_package_share_directory('stereo_cam')
-
-    ekf_config_path = os.path.join(pkg_dir, 'config', 'odom', 'ekf_test.yaml')
-    ekf_params = ParameterFile(ekf_config_path)
-
-    rtab_odom_config_path = os.path.join(pkg_dir, 'config', 'odom', 'rtab_odom.yaml')
-    rtab_odom_params = ParameterFile(rtab_odom_config_path)
-
-    mpu_imu_config_path = os.path.join(pkg_dir, 'params', 'mpu_imu.yaml')
-    mpu_imu_params = ParameterFile(mpu_imu_config_path)
 
     return LaunchDescription([
 
@@ -37,7 +26,7 @@ def generate_launch_description():
             }.items()
         ),
 
-        # 2. Stereo visual odometry
+        # 2. Stereo Object Detection
         Node(
             package='stereo_cam',
             executable='obstacle_detector',
