@@ -5,7 +5,6 @@
 #include <limits>
 #include <vector>
 #include <algorithm>
-#include <navis_nav/audio_mappings.hpp>
 
 class ClosestObstacleDetector : public rclcpp::Node
 {
@@ -181,7 +180,9 @@ private:
         obstacle_flag = true;
         pub_->publish(obstacle_is_msg);
         rclcpp::sleep_for(std::chrono::milliseconds(250));
-        pub_->publish(two_m);
+        pub_->publish(two);
+        rclcpp::sleep_for(std::chrono::milliseconds(250));
+        pub_->publish(meters);
       }
     }
 
@@ -193,14 +194,17 @@ private:
 
   // Published messages - to be reused
   bool obstacle_flag = false;
-  auto wav_map_ = get_wav_map();
   auto obstacle_is_msg = stereo_msgs::msg::ControlOut();
   obstacle_is_msg.buzzer_strength = 0; // No haptic feedback
-  obstacle_is_msg.speaker_wav_index = wav_map_.at("obstacle");
+  obstacle_is_msg.speaker_wav_index = 21; // "Obstacle is"
 
-  auto two_m = stereo_msgs::msg::ControlOut();
-  two_m.buzzer_strength = 0; // No haptic feedback
-  two_m.speaker_wav_index = wav_map_.at("2");
+  auto two = stereo_msgs::msg::ControlOut();
+  two.buzzer_strength = 0; // No haptic feedback
+  two.speaker_wav_index = 9; // "2" meters
+
+  auto meters = stereo_msgs::msg::ControlOut();
+  meters.buzzer_strength = 0; // No haptic feedback
+  meters.speaker_wav_index = 7; // "Meters"
 };
 
 int main(int argc, char **argv)
