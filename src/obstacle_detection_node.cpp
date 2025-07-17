@@ -6,6 +6,8 @@
 #include <vector>
 #include <algorithm>
 
+#include "navis_msgs/msg/control_out.hpp"
+
 class ClosestObstacleDetector : public rclcpp::Node
 {
 public:
@@ -24,7 +26,7 @@ public:
       "/disparity", rclcpp::SensorDataQoS(),
       std::bind(&ClosestObstacleDetector::disparityCallback, this, std::placeholders::_1));
 
-    pub_ = this->create_publisher<stereo_msgs::msg::ControlOut>(
+    pub_ = this->create_publisher<navis_msgs::msg::ControlOut>(
       "/control_output", 10);
       
     RCLCPP_INFO(this->get_logger(), "ClosestObstacleDetector node started.");
@@ -165,9 +167,6 @@ private:
       offset_from_center,
       x_near_lq.size());
 
-      
-    }
-
     // Publisher
     if (obstacle_flag) {
       if (lower_quartile_depth > 2.0f) {
@@ -176,6 +175,19 @@ private:
       }
     } else {
       if (lower_quartile_depth < 2.0f) {
+
+        navis_msgs::msg::ControlOut obstacle_is_msg;
+        obstacle_is_msg.buzzer_strength = 0; // No haptic feedback
+        obstacle_is_msg.speaker_wav_index = 21; // "Obstacle is"
+      
+        navis_msgs::msg::ControlOut two;
+        two.buzzer_strength = 0; // No haptic feedback
+        two.speaker_wav_index = 9; // "2" meters
+      
+        navis_msgs::msg::ControlOut meters;
+        meters.buzzer_strength = 0; // No haptic feedback
+        meters.speaker_wav_index = 7; // "Meters"
+
         RCLCPP_WARN(this->get_logger(), "Obstacle detected at %.2f m, setting flag and publishing.", lower_quartile_depth);
         obstacle_flag = true;
         pub_->publish(obstacle_is_msg);
@@ -185,6 +197,8 @@ private:
         pub_->publish(meters);
       }
     }
+  }
+
 
   rclcpp::Subscription<stereo_msgs::msg::DisparityImage>::SharedPtr sub_;
   double baseline_;
@@ -192,19 +206,10 @@ private:
   double roi_fraction_;
   float smoothed_l_r_x_ = -1.0;  // Initialize at start
 
+  rclcpp::Publisher<navis_msgs::msg::ControlOut>::SharedPtr pub_;
+
   // Published messages - to be reused
   bool obstacle_flag = false;
-  auto obstacle_is_msg = stereo_msgs::msg::ControlOut();
-  obstacle_is_msg.buzzer_strength = 0; // No haptic feedback
-  obstacle_is_msg.speaker_wav_index = 21; // "Obstacle is"
-
-  auto two = stereo_msgs::msg::ControlOut();
-  two.buzzer_strength = 0; // No haptic feedback
-  two.speaker_wav_index = 9; // "2" meters
-
-  auto meters = stereo_msgs::msg::ControlOut();
-  meters.buzzer_strength = 0; // No haptic feedback
-  meters.speaker_wav_index = 7; // "Meters"
 };
 
 int main(int argc, char **argv)

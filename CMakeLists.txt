@@ -25,6 +25,7 @@ find_package(pcl_conversions REQUIRED)
 find_package(PCL REQUIRED COMPONENTS filters)
 find_package(message_filters REQUIRED)
 find_package(Threads          REQUIRED)   # replaces raw ‘pthread’
+find_package(navis_msgs REQUIRED)
 
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
@@ -84,6 +85,7 @@ ament_target_dependencies(obstacle_detector
   std_msgs 
   cv_bridge
   stereo_msgs
+  navis_msgs
 )
 
 target_link_libraries(obstacle_detector ${PCL_LIBRARIES})
