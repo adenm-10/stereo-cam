@@ -89,6 +89,18 @@ def compose_perception(context):
             ]
         ),
 
+        # Extra disparity node for obstacle detection
+        ComposableNode(
+            package='stereo_image_proc',
+            plugin='stereo_image_proc::DisparityNode',
+            name='disparity_node',
+            parameters=[disparity_params],
+            extra_arguments=[
+                {'use_intra_process_comms': True},
+            ],
+            condition=IfCondition(LaunchConfiguration('enable_disparity')),
+        ),
+
         # 4a Stereo Visual Odometry
         ComposableNode(
             package='rtabmap_odom',
@@ -166,6 +178,7 @@ def generate_launch_description():
 
         # CLI args (same semantics as your legacy file)
         DeclareLaunchArgument('use_raspi',  default_value='false'),
+        DeclareLaunchArgument('enable_disparity', default_value='false'),
         DeclareLaunchArgument('rgbd_mode', default_value='false'),
         DeclareLaunchArgument('log_level', default_value='WARN'),
         DeclareLaunchArgument('use_sim_time', default_value='false'),

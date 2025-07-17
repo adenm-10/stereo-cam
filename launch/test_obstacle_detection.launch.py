@@ -8,6 +8,7 @@ from launch.conditions import IfCondition
 from launch.actions import DeclareLaunchArgument
 
 def generate_launch_description():
+    stereo_cam_dir = get_package_share_directory('stereo_cam')
 
     return LaunchDescription([
         DeclareLaunchArgument('use_raspi', default_value='true'),
@@ -16,13 +17,14 @@ def generate_launch_description():
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 PathJoinSubstitution([
-                    get_package_share_directory('stereo_cam'),
+                    stereo_cam_dir,
                     'launch',
-                    'stereo_cam.launch.py'
+                    'image_proc_pipeline.launch.py'
                 ])
             ),
             launch_arguments={
                 'use_raspi': LaunchConfiguration('use_raspi'),
+                'enable_disparity': True
             }.items()
         ),
 
