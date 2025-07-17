@@ -122,10 +122,7 @@ private:
     // Calculate depth from the 90th percentile disparity
     float depth_m = (focal_length_px_ * baseline_) / percentile_disparity;
 
-    // Calculate depth from the median disparity
-    float depth_m = (focal_length_px_ * baseline_) / median_disparity;
-
-    RCLCPP_INFO(this->get_logger(), "Median disparity: %.2f px, Estimated distance: %.2f m", median_disparity, depth_m);
+    RCLCPP_INFO(this->get_logger(), "90th percentile disparity: %.2f px, Estimated distance: %.2f m", percentile_disparity, depth_m);
 
     // Publisher logic
     if (obstacle_flag) {
