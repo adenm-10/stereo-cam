@@ -26,7 +26,8 @@ stereo_node:
     left_camera_info_url: "package://stereo_cam/config/cameras/left_camera_info.yaml"
     right_camera_info_url: "package://stereo_cam/config/cameras/right_camera_info.yaml"
     # calibration_file: "package://stereo_cam/config/calibrations/StereoCalibration_7_2_flipped.yaml"
-    calibration_file: "package://stereo_cam/config/calibrations/StereoCalibration_7_15_laser.yaml"
+    # calibration_file: "package://stereo_cam/config/calibrations/StereoCalibration_7_15_laser.yaml"
+    calibration_file: "package://stereo_cam/config/calibrations/StereoCalibration_7_17.yaml"
 
   
     stereo:

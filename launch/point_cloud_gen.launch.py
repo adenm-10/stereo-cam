@@ -1,69 +1,153 @@
+import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, OpaqueFunction
-from launch.substitutions import LaunchConfiguration, Command
-from launch_ros.actions import Node, ComposableNodeContainer
+from launch.actions import (
+    DeclareLaunchArgument, OpaqueFunction, GroupAction
+)
+from launch.conditions import IfCondition, UnlessCondition
+from launch.substitutions import (
+    LaunchConfiguration, PythonExpression, Command
+)
+from launch_ros.actions import (
+    ComposableNodeContainer, LoadComposableNodes, Node
+)
 from launch_ros.descriptions import ComposableNode
-from launch_ros.parameter_descriptions import ParameterValue
+from launch_ros.parameter_descriptions import ParameterFile
+from ament_index_python.packages import get_package_share_directory
+
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, GroupAction
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.conditions import IfCondition, UnlessCondition
+from launch_ros.actions import Node, SetParameter, SetRemap
 import os
 from ament_index_python.packages import get_package_share_directory
-from launch.conditions import IfCondition
 
-def launch_setup(context, *args, **kwargs):
+# ───────────────────────── helper: build component list ───────────────────
+def compose_perception(context):
     pkg_dir = get_package_share_directory('stereo_cam')
 
-    # Config files
-    raspi_config = os.path.join(pkg_dir, 'config', 'cameras', 'raspi_camera_params.yaml')
-    laptop_config = os.path.join(pkg_dir, 'config', 'cameras', 'laptop_camera_params.yaml')
+    raspi_cfg   = os.path.join(pkg_dir, 'config/cameras/raspi_camera_params.yaml')
+    laptop_cfg  = os.path.join(pkg_dir, 'config/cameras/laptop_camera_params.yaml')
+    use_raspi   = LaunchConfiguration('use_raspi').perform(context).lower() == 'true'
+    cam_cfg     = raspi_cfg if use_raspi else laptop_cfg
 
-    # Determine which config to use based on 'use_raspi'
-    use_raspi = LaunchConfiguration('use_raspi').perform(context)
-    selected_config = raspi_config if use_raspi.lower() == 'true' else laptop_config
+    log_level = LaunchConfiguration('log_level')
 
-    # Load URDF
+    rtab_stereo_params = ParameterFile(os.path.join(
+        pkg_dir, 'config/odom/rtab_odom_stereo.yaml'
+    ))
+
+    rtab_rgbd_params = ParameterFile(os.path.join(
+        pkg_dir, 'config/odom/rtab_odom_stereo.yaml'
+    ))
+
+    disparity_params = ParameterFile(os.path.join(
+        pkg_dir, 'config/disparity.yaml'
+    ))
+
+    # build /robot_description once so the same ParameterValue is reused
     urdf_file = os.path.join(pkg_dir, 'urdf', 'stereo_camera.urdf.xacro')
-    robot_description = ParameterValue(
-        Command(['xacro ', urdf_file]),
-        value_type=str
-    )
+    robot_description = {
+        'robot_description': Command(['xacro ', urdf_file])
+    }
 
-    # Composable container for stereo_node
-    stereo_container = ComposableNodeContainer(
-        name='stereo_container',
-        namespace='',
-        package='rclcpp_components',
-        executable='component_container_mt',
-        composable_node_descriptions=[
-            ComposableNode(
-                package='stereo_cam',
-                plugin='stereo_cam::StereoNode',
-                name='stereo_node',
-                parameters=[
-                    selected_config,
-                    {'robot_description': robot_description},
-                    {'enable_depth': 'false'}
-                ]
-            ),
-        ],
-        output='screen',
-    )
+    # ───────── component list ─────────
+    components = [
+        # 1. driver
+        ComposableNode(
+            package='stereo_cam',
+            plugin='stereo_cam::StereoNode',
+            name='stereo_node',
+            parameters=[
+                cam_cfg,
+                robot_description,
+            ],
+            extra_arguments=[
+                {'use_intra_process_comms': True},
+            ]
+        ),
+        # 2a left rectify
+        ComposableNode(
+            package='image_proc',
+            plugin='image_proc::RectifyNode',
+            name='left_rectify',
+            remappings=[
+                ('image',          '/left/image_raw'),
+                ('camera_info',    '/left/camera_info'),
+                ('image_rect',     '/left/image_rect'),
+                ('camera_info_out','/left/camera_info_rect'),
+            ],
+            extra_arguments=[
+                {'use_intra_process_comms': True},
+            ]
+        ),
+        # 2b right rectify
+        ComposableNode(
+            package='image_proc',
+            plugin='image_proc::RectifyNode',
+            name='right_rectify',
+            remappings=[
+                ('image',          '/right/image_raw'),
+                ('camera_info',    '/right/camera_info'),
+                ('image_rect',     '/right/image_rect'),
+                ('camera_info_out','/right/camera_info_rect'),
+            ],
+            extra_arguments=[
+                {'use_intra_process_comms': True},
+            ]
+        ),
 
-    depth_node = Node(
-        package='stereo_cam',
-        executable='depth_node'
-    )
-
-    # Return nodes
-    return [
-        stereo_container,
-        depth_node
     ]
 
-def generate_launch_description():
-    return LaunchDescription([
-        DeclareLaunchArgument(
-            'use_raspi',
-            default_value='false',
-            description='Use Raspberry Pi config if true, laptop config otherwise'
-        ),
-        OpaqueFunction(function=launch_setup)
+    # container name (auto unless user overrides)
+    ctn_name = PythonExpression([
+        '"', LaunchConfiguration('namespace'), '/stereo_container"'
+        ' if "', LaunchConfiguration('namespace'), '" != "" '
+        'else "stereo_container"'
     ])
+
+    container = ComposableNodeContainer(
+        name=ctn_name,
+        namespace=LaunchConfiguration('namespace'),
+        package='rclcpp_components',
+        executable='component_container_mt',
+        parameters=[{'use_intra_process_comms': True}],
+        composable_node_descriptions=components,
+        output='screen', 
+        arguments=['--ros-args', '--log-level', log_level]
+    )
+    return [container]
+
+# ───────────────────────────── launch description ──────────────────────────
+def generate_launch_description():
+
+    pkg_stereo_image_proc = get_package_share_directory(
+        'stereo_image_proc')
+
+    # Paths
+    stereo_image_proc_launch = PathJoinSubstitution(
+        [pkg_stereo_image_proc, 'launch', 'stereo_image_proc.launch.py'])
+
+    return LaunchDescription([
+
+        # CLI args (same semantics as your legacy file)
+        DeclareLaunchArgument('use_raspi',  default_value='false'),
+        DeclareLaunchArgument('rgbd_mode', default_value='false'),
+        DeclareLaunchArgument('log_level', default_value='WARN'),
+        DeclareLaunchArgument('use_sim_time', default_value='false'),
+        DeclareLaunchArgument('namespace',  default_value=''),
+
+        # one container with everything
+        OpaqueFunction(function=compose_perception),
+
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource([stereo_image_proc_launch]),
+            launch_arguments=[
+                ('left_namespace', 'left'),
+                ('right_namespace', 'right'),
+                ('disparity_range', '128'),
+            ]
+        ),
+    ])
+
