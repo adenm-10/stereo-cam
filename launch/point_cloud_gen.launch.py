@@ -40,16 +40,22 @@ def launch_setup(context, *args, **kwargs):
                 parameters=[
                     selected_config,
                     {'robot_description': robot_description},
-                    {'enable_depth': LaunchConfiguration('enable_depth')}
+                    {'enable_depth': 'false'}
                 ]
             ),
         ],
         output='screen',
     )
 
+    depth_node = Node(
+        package='stereo_cam',
+        executable='depth_node'
+    )
+
     # Return nodes
     return [
         stereo_container,
+        depth_node
     ]
 
 def generate_launch_description():
@@ -58,11 +64,6 @@ def generate_launch_description():
             'use_raspi',
             default_value='false',
             description='Use Raspberry Pi config if true, laptop config otherwise'
-        ),
-        DeclareLaunchArgument(
-            'enable_depth',
-            default_value='false',
-            description='Enable depth estimation node'
         ),
         OpaqueFunction(function=launch_setup)
     ])

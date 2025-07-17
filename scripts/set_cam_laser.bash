@@ -14,34 +14,34 @@
 # v4l2-ctl --set-ctrl=exposure_time_absolute=156
 # v4l2-ctl --set-ctrl=exposure_dynamic_framerate=0
 
-v4l2-ctl -d /dev/video0 --set-ctrl=brightness=40
+v4l2-ctl -d /dev/video0 --set-ctrl=brightness=-36
 v4l2-ctl -d /dev/video0 --set-ctrl=contrast=64
-v4l2-ctl -d /dev/video0 --set-ctrl=saturation=0
+v4l2-ctl -d /dev/video0 --set-ctrl=saturation=128
 v4l2-ctl -d /dev/video0 --set-ctrl=hue=0
 v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_automatic=0
-v4l2-ctl -d /dev/video0 --set-ctrl=gamma=180
-v4l2-ctl -d /dev/video0 --set-ctrl=gain=80
+v4l2-ctl -d /dev/video0 --set-ctrl=gamma=277
+v4l2-ctl -d /dev/video0 --set-ctrl=gain=43
 v4l2-ctl -d /dev/video0 --set-ctrl=power_line_frequency=1
 v4l2-ctl -d /dev/video0 --set-ctrl=white_balance_temperature=2800
 v4l2-ctl -d /dev/video0 --set-ctrl=sharpness=6
 v4l2-ctl -d /dev/video0 --set-ctrl=backlight_compensation=0
 v4l2-ctl -d /dev/video0 --set-ctrl=auto_exposure=1
-v4l2-ctl -d /dev/video0 --set-ctrl=exposure_time_absolute=120
+v4l2-ctl -d /dev/video0 --set-ctrl=exposure_time_absolute=250
 v4l2-ctl -d /dev/video0 --set-ctrl=exposure_dynamic_framerate=0
 
-v4l2-ctl -d /dev/video4 --set-ctrl=brightness=40
+v4l2-ctl -d /dev/video4 --set-ctrl=brightness=-36
 v4l2-ctl -d /dev/video4 --set-ctrl=contrast=64
-v4l2-ctl -d /dev/video4 --set-ctrl=saturation=0
+v4l2-ctl -d /dev/video4 --set-ctrl=saturation=128
 v4l2-ctl -d /dev/video4 --set-ctrl=hue=0
 v4l2-ctl -d /dev/video4 --set-ctrl=white_balance_automatic=0
-v4l2-ctl -d /dev/video4 --set-ctrl=gamma=80
-v4l2-ctl -d /dev/video4 --set-ctrl=gain=80
+v4l2-ctl -d /dev/video4 --set-ctrl=gamma=277
+v4l2-ctl -d /dev/video4 --set-ctrl=gain=43
 v4l2-ctl -d /dev/video4 --set-ctrl=power_line_frequency=1
 v4l2-ctl -d /dev/video4 --set-ctrl=white_balance_temperature=2800
 v4l2-ctl -d /dev/video4 --set-ctrl=sharpness=6
 v4l2-ctl -d /dev/video4 --set-ctrl=backlight_compensation=0
 v4l2-ctl -d /dev/video4 --set-ctrl=auto_exposure=1
-v4l2-ctl -d /dev/video4 --set-ctrl=exposure_time_absolute=120
+v4l2-ctl -d /dev/video4 --set-ctrl=exposure_time_absolute=250
 v4l2-ctl -d /dev/video4 --set-ctrl=exposure_dynamic_framerate=0
 
 

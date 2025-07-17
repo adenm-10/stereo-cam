@@ -66,7 +66,7 @@
 
   <!-- Ros2 gpio controllers -->
   <!-- <ros2_control name="ros2_control" type="system">
-      <hardware>
+      <hardware> 
           <plugin>gpio_controllers/Gpios</plugin>
           <param name="gpio_chip_name">gpiochip0</param>
       </hardware>
