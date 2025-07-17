@@ -95,23 +95,20 @@ private:
     cv::calcHist(&roi, 1, 0, mask, hist, 1, &hist_bins, &hist_range);
 
     float significant_disparity = 0.0f;
-    const int min_pixels_for_peak = num_valid_pixels * 0.05;
+    // A peak is significant if it contains at least 10% of the valid pixels,
+    // AND at least 1% of the total pixels in the ROI. This provides a stable
+    // minimum threshold, preventing false positives from noise in empty scenes.
+    const int min_relative_peak_size = num_valid_pixels * 0.10;
+    const int min_absolute_peak_size = (roi.rows * roi.cols) * 0.01;
+    const int min_pixels_for_peak = std::max(min_relative_peak_size, min_absolute_peak_size);
 
     for (int i = hist_bins - 1; i >= 0; i--)
     {
         if (hist.at<float>(i) > min_pixels_for_peak)
         {
             float bin_width = (hist_range[1] - hist_range[0]) / hist_bins;
-            float candidate_disparity = hist_range[0] + (i * bin_width) + (bin_width / 2.0f);
-
-            // REJECTION ZONE: Ignore the known ground-plane artifact (~63px disparity)
-            if (candidate_disparity > 60.0f && candidate_disparity < 66.0f) {
-                RCLCPP_DEBUG(this->get_logger(), "Ignored ground-plane artifact at %.2f px.", candidate_disparity);
-                continue; // Ignore this peak and keep searching
-            }
-            
-            significant_disparity = candidate_disparity;
-            break; // Found the closest, non-artifact object
+            significant_disparity = hist_range[0] + (i * bin_width) + (bin_width / 2.0f);
+            break; // Found the closest, significant object
         }
     }
 
