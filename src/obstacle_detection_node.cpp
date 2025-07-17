@@ -16,13 +16,15 @@ public:
   {
     this->declare_parameter("baseline", 0.152);
     this->declare_parameter("focal_length_px", 479.14);
-    this->declare_parameter("roi_width_fraction", 0.2);  // How much of the center width to use for ROI
-    this->declare_parameter("roi_height_fraction", 0.3); // How much of the center height to use for ROI
+    this->declare_parameter("roi_width_fraction", 0.2);
+    this->declare_parameter("roi_height_fraction", 0.3);
+    this->declare_parameter("smoothing_factor", 0.1); // Alpha for EMA filter
 
     baseline_ = this->get_parameter("baseline").as_double();
     focal_length_px_ = this->get_parameter("focal_length_px").as_double();
     roi_width_fraction_ = this->get_parameter("roi_width_fraction").as_double();
     roi_height_fraction_ = this->get_parameter("roi_height_fraction").as_double();
+    alpha_ = this->get_parameter("smoothing_factor").as_double();
 
     sub_ = this->create_subscription<stereo_msgs::msg::DisparityImage>(
       "/disparity", rclcpp::SensorDataQoS(),
@@ -60,7 +62,6 @@ private:
       disparity = disparity / 16.0;
     }
 
-    // Narrower ROI to exclude aisle walls and focus on the center path
     int w = disparity.cols;
     int h = disparity.rows;
     int roi_w = static_cast<int>(w * roi_width_fraction_);
@@ -75,93 +76,79 @@ private:
       return;
     }
 
-    cv::Mat roi = disparity(roi_rect).clone(); // Use clone to work on a copy
+    cv::Mat roi = disparity(roi_rect).clone();
+    cv::medianBlur(roi, roi, 5);
 
-    // Apply a median filter to remove salt-and-pepper noise
-    cv::medianBlur(roi, roi, 5); // 5x5 kernel, must be an odd number
-
-    // To find the closest significant obstacle, we use a histogram and search it
-    // from the highest disparity (closest) to the lowest (farthest).
-    // The first bin with a significant number of pixels represents the closest object.
-
-    // Define histogram parameters.
-    int hist_bins = 256; // Use 256 bins for disparity values 0-255
+    int hist_bins = 256;
     float hist_range_params[] = {0.0f, 256.0f};
     const float* hist_range = {hist_range_params};
-
-    // Create a mask to exclude invalid disparities (values <= 0 are invalid)
     cv::Mat mask;
     cv::inRange(roi, cv::Scalar(0.1), cv::Scalar(256.0), mask);
 
-    // Check if we have enough valid pixels to proceed
     size_t num_valid_pixels = cv::countNonZero(mask);
-    size_t min_valid_pixels = (roi.rows * roi.cols) * 0.05; // Require at least 5% of ROI to be valid
+    size_t min_valid_pixels = (roi.rows * roi.cols) * 0.05;
     if (num_valid_pixels < min_valid_pixels)
     {
       RCLCPP_WARN(this->get_logger(), "Not enough valid pixels in ROI: %zu (minimum required: %zu)", num_valid_pixels, min_valid_pixels);
       return;
     }
 
-    // Calculate histogram of valid disparity values
     cv::Mat hist;
     cv::calcHist(&roi, 1, 0, mask, hist, 1, &hist_bins, &hist_range);
 
-    // Search histogram from CLOSE to FAR to find the first significant peak
     float significant_disparity = 0.0f;
-    // A peak is significant if it contains at least 5% of the valid pixels.
     const int min_pixels_for_peak = num_valid_pixels * 0.05;
 
-    // Iterate from the highest bin (closest) to the lowest (farthest)
     for (int i = hist_bins - 1; i >= 0; i--)
     {
         if (hist.at<float>(i) > min_pixels_for_peak)
         {
-            // This is the first significant peak from the "close" end. This is our obstacle.
-            // Convert the bin index back to a disparity value (center of the bin).
             float bin_width = (hist_range[1] - hist_range[0]) / hist_bins;
             significant_disparity = hist_range[0] + (i * bin_width) + (bin_width / 2.0f);
-            break; // Found the closest object, stop searching.
+            break;
         }
     }
 
-    // If no significant peak was found, there is no obstacle.
     if (significant_disparity < 0.1f) {
         RCLCPP_INFO(this->get_logger(), "No significant obstacle found.");
-        if (obstacle_flag) { // If flag was set, reset it
+        if (obstacle_flag) {
             obstacle_flag = false;
             RCLCPP_INFO(this->get_logger(), "Obstacle flag reset.");
         }
         return;
     }
 
-    // Calculate depth from the correctly identified disparity
     float depth_m = (focal_length_px_ * baseline_) / significant_disparity;
 
-    RCLCPP_INFO(this->get_logger(), "Closest significant disparity: %.2f px, Estimated distance: %.2f m", significant_disparity, depth_m);
+    // Apply temporal smoothing (Exponential Moving Average) to stabilize the distance
+    if (smoothed_depth_m_ < 0) {
+        smoothed_depth_m_ = depth_m; // Initialize on first valid reading
+    } else {
+        smoothed_depth_m_ = (alpha_ * depth_m) + ((1.0 - alpha_) * smoothed_depth_m_);
+    }
 
-    // Publisher logic
+    RCLCPP_INFO(this->get_logger(), "Raw distance: %.2f m, Smoothed distance: %.2f m", depth_m, smoothed_depth_m_);
+
     if (obstacle_flag) {
-      // If an obstacle was previously detected, check if it's now further than 2m
-      if (depth_m > 2.0f) {
+      if (smoothed_depth_m_ > 2.0f) {
         RCLCPP_INFO(this->get_logger(), "Obstacle flag reset.");
         obstacle_flag = false;
       }
     } else {
-      // If no obstacle was detected, check if one has appeared within 2m
-      if (depth_m < 2.0f) {
-        RCLCPP_WARN(this->get_logger(), "Obstacle detected at %.2f m, setting flag and publishing.", depth_m);
+      if (smoothed_depth_m_ < 2.0f) {
+        RCLCPP_WARN(this->get_logger(), "Obstacle detected at %.2f m, setting flag and publishing.", smoothed_depth_m_);
         
         navis_msgs::msg::ControlOut obstacle_is_msg;
         obstacle_is_msg.buzzer_strength = 0;
-        obstacle_is_msg.speaker_wav_index = 21; // "Obstacle is"
+        obstacle_is_msg.speaker_wav_index = 21;
       
         navis_msgs::msg::ControlOut two;
         two.buzzer_strength = 0;
-        two.speaker_wav_index = 9; // "2"
+        two.speaker_wav_index = 9;
       
         navis_msgs::msg::ControlOut meters;
         meters.buzzer_strength = 0;
-        meters.speaker_wav_index = 7; // "Meters"
+        meters.speaker_wav_index = 7;
 
         obstacle_flag = true;
         pub_->publish(obstacle_is_msg);
@@ -179,6 +166,8 @@ private:
   double focal_length_px_;
   double roi_width_fraction_;
   double roi_height_fraction_;
+  double alpha_; // Smoothing factor for EMA filter
+  double smoothed_depth_m_ = -1.0; // Use -1 to indicate uninitialized
   bool obstacle_flag = false;
 };
 
