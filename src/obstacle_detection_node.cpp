@@ -80,22 +80,22 @@ private:
     // Apply a median filter to remove salt-and-pepper noise
     cv::medianBlur(roi, roi, 5); // 5x5 kernel, must be an odd number
 
-    // To find the most representative obstacle distance, we'll use a histogram to find
-    // the mode (most common) disparity value. This is more robust than percentiles,
-    // especially when the ground plane creates a gradient of disparity values.
-    
-    // Define histogram parameters. We are interested in disparities from 1 to 256.
-    int hist_bins = 255; // 255 bins for values 1-256
-    float hist_range_params[] = {1.0f, 256.0f};
+    // To find the closest significant obstacle, we use a histogram and search it
+    // from the highest disparity (closest) to the lowest (farthest).
+    // The first bin with a significant number of pixels represents the closest object.
+
+    // Define histogram parameters.
+    int hist_bins = 256; // Use 256 bins for disparity values 0-255
+    float hist_range_params[] = {0.0f, 256.0f};
     const float* hist_range = {hist_range_params};
 
-    // Create a mask to exclude invalid disparities (<= 0.1)
+    // Create a mask to exclude invalid disparities (values <= 0 are invalid)
     cv::Mat mask;
-    cv::inRange(roi, cv::Scalar(0.1), cv::Scalar(256), mask);
+    cv::inRange(roi, cv::Scalar(0.1), cv::Scalar(256.0), mask);
 
-    // Check if we have enough valid pixels to begin with
+    // Check if we have enough valid pixels to proceed
     size_t num_valid_pixels = cv::countNonZero(mask);
-    size_t min_valid_pixels = (roi.rows * roi.cols) * 0.05; // require at least 5% valid
+    size_t min_valid_pixels = (roi.rows * roi.cols) * 0.05; // Require at least 5% of ROI to be valid
     if (num_valid_pixels < min_valid_pixels)
     {
       RCLCPP_WARN(this->get_logger(), "Not enough valid pixels in ROI: %zu (minimum required: %zu)", num_valid_pixels, min_valid_pixels);
@@ -106,26 +106,38 @@ private:
     cv::Mat hist;
     cv::calcHist(&roi, 1, 0, mask, hist, 1, &hist_bins, &hist_range);
 
-    // Find the bin with the highest value (the mode)
-    double max_val = 0;
-    cv::Point max_loc;
-    cv::minMaxLoc(hist, 0, &max_val, 0, &max_loc);
+    // Search histogram from CLOSE to FAR to find the first significant peak
+    float significant_disparity = 0.0f;
+    // A peak is significant if it contains at least 5% of the valid pixels.
+    const int min_pixels_for_peak = num_valid_pixels * 0.05;
 
-    // Ensure the peak in the histogram is significant enough to be a real object
-    if (max_val < num_valid_pixels * 0.1) { // Require the peak to contain at least 10% of the valid pixels
-        RCLCPP_WARN(this->get_logger(), "No dominant obstacle found in ROI. Valid pixels: %zu, peak count: %.0f", num_valid_pixels, max_val);
+    // Iterate from the highest bin (closest) to the lowest (farthest)
+    for (int i = hist_bins - 1; i >= 0; i--)
+    {
+        if (hist.at<float>(i) > min_pixels_for_peak)
+        {
+            // This is the first significant peak from the "close" end. This is our obstacle.
+            // Convert the bin index back to a disparity value (center of the bin).
+            float bin_width = (hist_range[1] - hist_range[0]) / hist_bins;
+            significant_disparity = hist_range[0] + (i * bin_width) + (bin_width / 2.0f);
+            break; // Found the closest object, stop searching.
+        }
+    }
+
+    // If no significant peak was found, there is no obstacle.
+    if (significant_disparity < 0.1f) {
+        RCLCPP_INFO(this->get_logger(), "No significant obstacle found.");
+        if (obstacle_flag) { // If flag was set, reset it
+            obstacle_flag = false;
+            RCLCPP_INFO(this->get_logger(), "Obstacle flag reset.");
+        }
         return;
     }
 
-    // The `max_loc.y` gives the bin index. Convert this back to a disparity value.
-    // The disparity value is the center of the bin.
-    float bin_width = hist_range_params[1] / hist_bins;
-    float mode_disparity = (max_loc.y * bin_width) + (bin_width / 2.0f);
+    // Calculate depth from the correctly identified disparity
+    float depth_m = (focal_length_px_ * baseline_) / significant_disparity;
 
-    // Calculate depth from the mode disparity
-    float depth_m = (focal_length_px_ * baseline_) / mode_disparity;
-
-    RCLCPP_INFO(this->get_logger(), "Mode disparity: %.2f px, Estimated distance: %.2f m", mode_disparity, depth_m);
+    RCLCPP_INFO(this->get_logger(), "Closest significant disparity: %.2f px, Estimated distance: %.2f m", significant_disparity, depth_m);
 
     // Publisher logic
     if (obstacle_flag) {
