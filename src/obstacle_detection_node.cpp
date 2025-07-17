@@ -18,13 +18,11 @@ public:
     this->declare_parameter("focal_length_px", 479.14);
     this->declare_parameter("roi_width_fraction", 0.2);
     this->declare_parameter("roi_height_fraction", 0.3);
-    this->declare_parameter("smoothing_factor", 0.1); // Alpha for EMA filter
 
     baseline_ = this->get_parameter("baseline").as_double();
     focal_length_px_ = this->get_parameter("focal_length_px").as_double();
     roi_width_fraction_ = this->get_parameter("roi_width_fraction").as_double();
     roi_height_fraction_ = this->get_parameter("roi_height_fraction").as_double();
-    alpha_ = this->get_parameter("smoothing_factor").as_double();
 
     sub_ = this->create_subscription<stereo_msgs::msg::DisparityImage>(
       "/disparity", rclcpp::SensorDataQoS(),
@@ -67,7 +65,7 @@ private:
     int roi_w = static_cast<int>(w * roi_width_fraction_);
     int roi_h = static_cast<int>(h * roi_height_fraction_);
     int x0 = (w - roi_w) / 2;
-    int y0 = 0; // Start ROI from the top of the image to avoid the ground plane
+    int y0 = 0; // Start ROI from the top of the image
     cv::Rect roi_rect(x0, y0, roi_w, roi_h);
 
     if (x0 < 0 || y0 < 0 || roi_w <= 0 || roi_h <= 0 || (x0 + roi_w) > w || (y0 + roi_h) > h)
@@ -104,8 +102,16 @@ private:
         if (hist.at<float>(i) > min_pixels_for_peak)
         {
             float bin_width = (hist_range[1] - hist_range[0]) / hist_bins;
-            significant_disparity = hist_range[0] + (i * bin_width) + (bin_width / 2.0f);
-            break;
+            float candidate_disparity = hist_range[0] + (i * bin_width) + (bin_width / 2.0f);
+
+            // REJECTION ZONE: Ignore the known ground-plane artifact (~63px disparity)
+            if (candidate_disparity > 60.0f && candidate_disparity < 66.0f) {
+                RCLCPP_DEBUG(this->get_logger(), "Ignored ground-plane artifact at %.2f px.", candidate_disparity);
+                continue; // Ignore this peak and keep searching
+            }
+            
+            significant_disparity = candidate_disparity;
+            break; // Found the closest, non-artifact object
         }
     }
 
@@ -120,23 +126,16 @@ private:
 
     float depth_m = (focal_length_px_ * baseline_) / significant_disparity;
 
-    // Apply temporal smoothing (Exponential Moving Average) to stabilize the distance
-    if (smoothed_depth_m_ < 0) {
-        smoothed_depth_m_ = depth_m; // Initialize on first valid reading
-    } else {
-        smoothed_depth_m_ = (alpha_ * depth_m) + ((1.0 - alpha_) * smoothed_depth_m_);
-    }
-
-    RCLCPP_INFO(this->get_logger(), "Raw distance: %.2f m, Smoothed distance: %.2f m", depth_m, smoothed_depth_m_);
+    RCLCPP_INFO(this->get_logger(), "Closest distance: %.2f m (disparity: %.2f px)", depth_m, significant_disparity);
 
     if (obstacle_flag) {
-      if (smoothed_depth_m_ > 2.0f) {
+      if (depth_m > 2.0f) {
         RCLCPP_INFO(this->get_logger(), "Obstacle flag reset.");
         obstacle_flag = false;
       }
     } else {
-      if (smoothed_depth_m_ < 2.0f) {
-        RCLCPP_WARN(this->get_logger(), "Obstacle detected at %.2f m, setting flag and publishing.", smoothed_depth_m_);
+      if (depth_m < 2.0f) {
+        RCLCPP_WARN(this->get_logger(), "Obstacle detected at %.2f m, setting flag and publishing.", depth_m);
         
         navis_msgs::msg::ControlOut obstacle_is_msg;
         obstacle_is_msg.buzzer_strength = 0;
@@ -166,8 +165,6 @@ private:
   double focal_length_px_;
   double roi_width_fraction_;
   double roi_height_fraction_;
-  double alpha_; // Smoothing factor for EMA filter
-  double smoothed_depth_m_ = -1.0; // Use -1 to indicate uninitialized
   bool obstacle_flag = false;
 };
 
