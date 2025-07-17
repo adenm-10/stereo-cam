@@ -66,7 +66,7 @@ private:
     int roi_w = static_cast<int>(w * roi_width_fraction_);
     int roi_h = static_cast<int>(h * roi_height_fraction_);
     int x0 = (w - roi_w) / 2;
-    int y0 = (h - roi_h) / 2; // You might want to shift this up to avoid the ground
+    int y0 = 0; // Start ROI from the top of the image to avoid the ground plane
     cv::Rect roi_rect(x0, y0, roi_w, roi_h);
 
     if (x0 < 0 || y0 < 0 || roi_w <= 0 || roi_h <= 0 || (x0 + roi_w) > w || (y0 + roi_h) > h)
@@ -80,49 +80,52 @@ private:
     // Apply a median filter to remove salt-and-pepper noise
     cv::medianBlur(roi, roi, 5); // 5x5 kernel, must be an odd number
 
-    // Collect all valid disparity values in the ROI
-    std::vector<float> valid_disparities;
-    valid_disparities.reserve(roi.rows * roi.cols);
+    // To find the most representative obstacle distance, we'll use a histogram to find
+    // the mode (most common) disparity value. This is more robust than percentiles,
+    // especially when the ground plane creates a gradient of disparity values.
+    
+    // Define histogram parameters. We are interested in disparities from 1 to 256.
+    int hist_bins = 255; // 255 bins for values 1-256
+    float hist_range_params[] = {1.0f, 256.0f};
+    const float* hist_range = {hist_range_params};
 
-    for (int r = 0; r < roi.rows; ++r)
-    {
-      float* row_ptr = roi.ptr<float>(r);
-      for (int c = 0; c < roi.cols; ++c)
-      {
-        if (row_ptr[c] > 0.1f) // Check for valid disparity
-        {
-          valid_disparities.push_back(row_ptr[c]);
-        }
-      }
-    }
+    // Create a mask to exclude invalid disparities (<= 0.1)
+    cv::Mat mask;
+    cv::inRange(roi, cv::Scalar(0.1), cv::Scalar(256), mask);
 
-    // Check if we have enough valid data points
+    // Check if we have enough valid pixels to begin with
+    size_t num_valid_pixels = cv::countNonZero(mask);
     size_t min_valid_pixels = (roi.rows * roi.cols) * 0.05; // require at least 5% valid
-    if (valid_disparities.size() < min_valid_pixels)
+    if (num_valid_pixels < min_valid_pixels)
     {
-      RCLCPP_WARN(this->get_logger(), "Not enough valid pixels in ROI: %zu (minimum required: %zu)", valid_disparities.size(), min_valid_pixels);
+      RCLCPP_WARN(this->get_logger(), "Not enough valid pixels in ROI: %zu (minimum required: %zu)", num_valid_pixels, min_valid_pixels);
       return;
     }
 
-    // Instead of the median (50th percentile), find the 90th percentile of the disparity.
-    // This makes the calculation robust to cases where the foreground object lacks texture
-    // and the ROI is dominated by background pixels. A higher percentile focuses on the
-    // largest disparity values, which correspond to the closest objects.
-    if (valid_disparities.empty()) {
-        RCLCPP_WARN(this->get_logger(), "Cannot calculate percentile, no valid disparities.");
-        return; // Or handle error appropriately
+    // Calculate histogram of valid disparity values
+    cv::Mat hist;
+    cv::calcHist(&roi, 1, 0, mask, hist, 1, &hist_bins, &hist_range);
+
+    // Find the bin with the highest value (the mode)
+    double max_val = 0;
+    cv::Point max_loc;
+    cv::minMaxLoc(hist, 0, &max_val, 0, &max_loc);
+
+    // Ensure the peak in the histogram is significant enough to be a real object
+    if (max_val < num_valid_pixels * 0.1) { // Require the peak to contain at least 10% of the valid pixels
+        RCLCPP_WARN(this->get_logger(), "No dominant obstacle found in ROI. Valid pixels: %zu, peak count: %.0f", num_valid_pixels, max_val);
+        return;
     }
 
-    size_t percentile_index = valid_disparities.size() * 0.90;
-    std::nth_element(valid_disparities.begin(),
-                     valid_disparities.begin() + percentile_index,
-                     valid_disparities.end());
-    float percentile_disparity = valid_disparities[percentile_index];
+    // The `max_loc.y` gives the bin index. Convert this back to a disparity value.
+    // The disparity value is the center of the bin.
+    float bin_width = hist_range_params[1] / hist_bins;
+    float mode_disparity = (max_loc.y * bin_width) + (bin_width / 2.0f);
 
-    // Calculate depth from the 90th percentile disparity
-    float depth_m = (focal_length_px_ * baseline_) / percentile_disparity;
+    // Calculate depth from the mode disparity
+    float depth_m = (focal_length_px_ * baseline_) / mode_disparity;
 
-    RCLCPP_INFO(this->get_logger(), "90th percentile disparity: %.2f px, Estimated distance: %.2f m", percentile_disparity, depth_m);
+    RCLCPP_INFO(this->get_logger(), "Mode disparity: %.2f px, Estimated distance: %.2f m", mode_disparity, depth_m);
 
     // Publisher logic
     if (obstacle_flag) {
