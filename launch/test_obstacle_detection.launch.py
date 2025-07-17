@@ -31,4 +31,9 @@ def generate_launch_description():
             package='stereo_cam',
             executable='obstacle_detector',
         ),
+
+        Node(
+            package='navis_nav',
+            executable='control_out_node',
+        ),
     ])
