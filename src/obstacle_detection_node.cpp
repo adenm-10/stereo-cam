@@ -104,28 +104,23 @@ private:
       return;
     }
 
-    // Find the median disparity for a robust measurement
-    float median_disparity;
+    // Instead of the median (50th percentile), find the 90th percentile of the disparity.
+    // This makes the calculation robust to cases where the foreground object lacks texture
+    // and the ROI is dominated by background pixels. A higher percentile focuses on the
+    // largest disparity values, which correspond to the closest objects.
     if (valid_disparities.empty()) {
-        RCLCPP_WARN(this->get_logger(), "Cannot calculate median, no valid disparities.");
+        RCLCPP_WARN(this->get_logger(), "Cannot calculate percentile, no valid disparities.");
         return; // Or handle error appropriately
     }
 
-    size_t mid_index = valid_disparities.size() / 2;
+    size_t percentile_index = valid_disparities.size() * 0.90;
     std::nth_element(valid_disparities.begin(),
-                     valid_disparities.begin() + mid_index,
+                     valid_disparities.begin() + percentile_index,
                      valid_disparities.end());
+    float percentile_disparity = valid_disparities[percentile_index];
 
-    if (valid_disparities.size() % 2 == 0) {
-        // Even-sized vector: average the two middle elements for a true median.
-        // The element at mid_index is the upper of the two middle elements.
-        // The other is the max element in the lower partition.
-        auto max_of_lower_half = *std::max_element(valid_disparities.begin(), valid_disparities.begin() + mid_index);
-        median_disparity = (max_of_lower_half + valid_disparities[mid_index]) / 2.0f;
-    } else {
-        // Odd-sized vector: the middle element is the median.
-        median_disparity = valid_disparities[mid_index];
-    }
+    // Calculate depth from the 90th percentile disparity
+    float depth_m = (focal_length_px_ * baseline_) / percentile_disparity;
 
     // Calculate depth from the median disparity
     float depth_m = (focal_length_px_ * baseline_) / median_disparity;
