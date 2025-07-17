@@ -26,7 +26,7 @@ public:
       std::bind(&ClosestObstacleDetector::disparityCallback, this, std::placeholders::_1));
 
     pub_ = this->create_publisher<stereo_msgs::msg::ControlOut>(
-      "/obstacle_control", 10);
+      "/control_output", 10);
       
     RCLCPP_INFO(this->get_logger(), "ClosestObstacleDetector node started.");
   }
