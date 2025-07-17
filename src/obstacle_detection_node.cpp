@@ -126,12 +126,17 @@ private:
     RCLCPP_INFO(this->get_logger(), "Closest distance: %.2f m (disparity: %.2f px)", depth_m, significant_disparity);
 
     if (obstacle_flag) {
-      if (depth_m > 2.0f) {
+      if (depth_m > 2.0f && counter_ >= 5) {
         RCLCPP_INFO(this->get_logger(), "Obstacle flag reset.");
         obstacle_flag = false;
+        counter_ = 0;
+      } else if (depth_m > 2.0f && counter_ < 5) {
+        counter_++;
+      } else {
+        counter_ = 0;
       }
     } else {
-      if (depth_m < 2.0f) {
+      if (depth_m < 2.0f && counter_ >= 5) {
         RCLCPP_WARN(this->get_logger(), "Obstacle detected at %.2f m, setting flag and publishing.", depth_m);
         
         navis_msgs::msg::ControlOut obstacle_is_msg;
@@ -152,6 +157,12 @@ private:
         pub_->publish(two);
         rclcpp::sleep_for(std::chrono::milliseconds(250));
         pub_->publish(meters);
+
+        counter_ = 0;
+      } else if (depth_m < 2.0f && counter_ < 5) {
+        counter_++;
+      } else {
+        counter_ = 0;
       }
     }
   }
@@ -163,6 +174,7 @@ private:
   double roi_width_fraction_;
   double roi_height_fraction_;
   bool obstacle_flag = false;
+  int counter_ = 0;
 };
 
 int main(int argc, char **argv)
