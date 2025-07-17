@@ -1,14 +1,14 @@
 import os
 from launch import LaunchDescription
 from launch.actions import (
-    DeclareLaunchArgument, OpaqueFunction, GroupAction
+    DeclareLaunchArgument, OpaqueFunction
 )
 from launch.conditions import IfCondition, UnlessCondition
 from launch.substitutions import (
     LaunchConfiguration, PythonExpression, Command
 )
 from launch_ros.actions import (
-    ComposableNodeContainer, LoadComposableNodes, Node
+    ComposableNodeContainer, Node
 )
 from launch_ros.descriptions import ComposableNode
 from launch_ros.parameter_descriptions import ParameterFile
@@ -160,7 +160,6 @@ def compose_perception(context):
     )
     return [container]
 
-# ───────────────────────────── launch description ──────────────────────────
 def generate_launch_description():
 
     return LaunchDescription([
