@@ -126,40 +126,29 @@ private:
     RCLCPP_INFO(this->get_logger(), "Closest distance: %.2f m (disparity: %.2f px)", depth_m, significant_disparity);
 
     if (obstacle_flag) {
-      if (depth_m > 2.0f && counter_ >= 5) {
+      if (depth_m < 2.0f && counter_ >= 5) {
         RCLCPP_INFO(this->get_logger(), "Obstacle flag reset.");
         obstacle_flag = false;
         counter_ = 0;
-      } else if (depth_m > 2.0f && counter_ < 5) {
+      } else if (depth_m < 2.0f && counter_ < 5) {
         counter_++;
       } else {
         counter_ = 0;
       }
     } else {
-      if (depth_m < 2.0f && counter_ >= 5) {
+      if (depth_m > 2.0f && counter_ >= 5) {
         RCLCPP_WARN(this->get_logger(), "Obstacle detected at %.2f m, setting flag and publishing.", depth_m);
         
         navis_msgs::msg::ControlOut obstacle_is_msg;
         obstacle_is_msg.buzzer_strength = 0;
-        obstacle_is_msg.speaker_wav_index = 21;
-      
-        navis_msgs::msg::ControlOut two;
-        two.buzzer_strength = 0;
-        two.speaker_wav_index = 9;
-      
-        navis_msgs::msg::ControlOut meters;
-        meters.buzzer_strength = 0;
-        meters.speaker_wav_index = 7;
+        obstacle_is_msg.speaker_wav_index = 21; // "Obstacle is" index in audio mappings
 
         obstacle_flag = true;
         pub_->publish(obstacle_is_msg);
         rclcpp::sleep_for(std::chrono::milliseconds(250));
-        pub_->publish(two);
-        rclcpp::sleep_for(std::chrono::milliseconds(250));
-        pub_->publish(meters);
 
         counter_ = 0;
-      } else if (depth_m < 2.0f && counter_ < 5) {
+      } else if (depth_m > 2.0f && counter_ < 5) {
         counter_++;
       } else {
         counter_ = 0;
