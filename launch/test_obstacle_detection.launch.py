@@ -24,7 +24,7 @@ def generate_launch_description():
             ),
             launch_arguments={
                 'use_raspi': LaunchConfiguration('use_raspi'),
-                'enable_disparity': True
+                'enable_disparity': 'true'
             }.items()
         ),
 
