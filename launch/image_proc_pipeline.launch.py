@@ -56,6 +56,7 @@ def compose_perception(context):
             ],
             extra_arguments=[
                 {'use_intra_process_comms': True},
+                {'enable_depth': LaunchConfiguration('enable_depth')}
             ]
         ),
         # 2a left rectify
