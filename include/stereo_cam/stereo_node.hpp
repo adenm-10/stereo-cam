@@ -11,58 +11,13 @@
 #include <camera_info_manager/camera_info_manager.hpp>
 #include <sensor_msgs/msg/camera_info.hpp>
 #include <tf2_ros/static_transform_broadcaster.h>
+#include <fstream>
 
-#include "lccv/lccv.hpp"
 #include "cv_cam/cv_cam.hpp"
 #include "stereo_cam/icm20948.hpp"
 #include "stereo_cam/calib_utils.hpp"
 
 namespace stereo_cam {
-
-struct CameraConfig {
-    static constexpr int MAX_WIDTH = 3280;
-    static constexpr int MAX_HEIGHT = 2464;
-    static constexpr double FOCAL_LENGTH = 4.0; // mm
-    static constexpr double BASELINE = 0.1524; // meters (60mm)
-    static constexpr double FOV_H = 71.0; // degrees
-    static constexpr double FOV_V = 55.0; // degrees
-
-    struct Resolution {
-        int width;
-        int height;
-        double fps;
-    };
-    
-    static const std::vector<Resolution> SUPPORTED_MODES;  // Declaration only
-};
-
-struct ArducamCameraConfig {
-    std::string format;
-    std::string port;
-    std::string device;
-    int width;
-    int height;
-    int fps;
-
-    bool operator==(const ArducamCameraConfig& other) const {
-        return format == other.format &&
-               port == other.port &&
-               device == other.device &&
-               width == other.width &&
-               height == other.height &&
-               fps == other.fps;
-    }
-
-    void print() const {
-        std::cout << "ArducamCameraConfig:" << std::endl;
-        std::cout << "  format: " << format << std::endl;
-        std::cout << "  port: " << port << std::endl;
-        std::cout << "  device: " << device << std::endl;
-        std::cout << "  width: " << width << std::endl;
-        std::cout << "  height: " << height << std::endl;
-        std::cout << "  fps: " << fps << std::endl;
-    }
-};
 
 class StereoNode : public rclcpp::Node {
 public:
@@ -98,22 +53,16 @@ private:
     // Parameters
     int width_;
     int height_;
-    int frame_rate_;
+    int framerate_;
     std::string frame_id_;
+    std::string gst_pixel_format_;
+    std::string it_pixel_format_;
 
-    std::string right_format_;
-    std::string right_port_;
-    std::string right_device_;
+    std::string right_device_file_;
+    std::string right_payload_type_;
 
-    std::string left_format_;
-    std::string left_port_;
-    std::string left_device_;
-
-    ArducamCameraConfig left_config_;
-    ArducamCameraConfig right_config_;
-
-    std::string left_gst_str;
-    std::string right_gst_str;
+    std::string left_device_file_;
+    std::string left_payload_type_;
 
     // Camera info managers
     std::unique_ptr<camera_info_manager::CameraInfoManager> left_info_manager_;

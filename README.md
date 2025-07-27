@@ -202,3 +202,15 @@ This means:
 - [libcamera Documentation](https://libcamera.org/docs.html)
 - [ROS 2 Documentation](https://docs.ros.org/en/humble/)
 - [LCCV Library](https://github.com/kbarni/LCCV)
+
+
+
+1. Find the video driver file "dev/videoX"
+	- ls /dev/video*
+	- v4l2:///dev/videoX
+	
+2. Figure out the usable compression, resolutions, and framerates
+	- v4l2-ctl --device=/dev/videoX --list-formats-ext
+	
+3. To see User Driver controls
+	- v4l2-ctl --device=/dev/videoX --list-ctrls-menu

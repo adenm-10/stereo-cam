@@ -6,31 +6,18 @@ stereo_node:
     image_height: 360
     frame_rate: 30
 
-    left_format: MJPG
-    left_port: /dev/video0
-    left_device: Raspi
-
-    right_format: MJPG
-    right_port: /dev/video4
-    right_device: Raspi
+    # The below must align, or there will be a problem with reading the node
+    # - gst_pixel_format: OpenCV Raw Video Media Types. https://gstreamer.freedesktop.org/documentation/additional/design/mediatype-video-raw.html?gi-language=c
+    # - it_pixel_format:  OpenCV Image Encodings for Image Transport. https://docs.ros.org/en/electric/api/sensor_msgs/html/namespacesensor__msgs_1_1image__encodings.html
+    # - BGR Worked best, another pair would be "GRAY8" and "mono8"
+    gst_pixel_format: BGR
+    it_pixel_format: bgr8
     
-    imu_rate: 100
+    left_device_file: /dev/video0
+    left_payload_type: MJPG
+
+    right_device_file: /dev/video4
+    right_payload_type: MJPG
     
     frame_id: "camera_link"
-    left_camera_optical_frame: "left_camera_optical_frame"
-    right_camera_optical_frame: "right_camera_optical_frame"
-    imu_frame: "imu_link"
-    exposure_mode: "normal"
-    gain: 1.0
-    exposure_time: 0  # 0 for auto
-    left_camera_info_url: "package://stereo_cam/config/cameras/left_camera_info.yaml"
-    right_camera_info_url: "package://stereo_cam/config/cameras/right_camera_info.yaml"
-    # calibration_file: "package://stereo_cam/config/calibrations/StereoCalibration_7_2_flipped.yaml"
-    # calibration_file: "package://stereo_cam/config/calibrations/StereoCalibration_7_15_laser.yaml"
     calibration_file: "package://stereo_cam/config/calibrations/StereoCalibration_7_17.yaml"
-
-  
-    stereo:
-      baseline: 0.152  # 152.4 mm between cameras
-      focal_length: 479.14 # pixels
-      principal_point: [968.0, 548.5]  # pixels 

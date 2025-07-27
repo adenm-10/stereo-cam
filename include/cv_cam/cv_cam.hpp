@@ -11,7 +11,12 @@ namespace cv_cam {
 
 class Arducam {
 public:
-    explicit Arducam(const std::string& pipeline);
+    explicit Arducam(const std::string& device_file,
+                     const std::string& payload_type,
+                     const std::string& pixel_format,
+                     const int width,
+                     const int height,
+                     const int framerate);
     ~Arducam();
 
     // Thread-safe frame getter with timeout

@@ -21,14 +21,8 @@ find_package(tf2_ros REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(PkgConfig REQUIRED)
 find_package(ament_index_cpp REQUIRED)
-find_package(pcl_conversions REQUIRED)
-find_package(PCL REQUIRED COMPONENTS filters)
 find_package(message_filters REQUIRED)
 find_package(Threads          REQUIRED)   # replaces raw ‘pthread’
-find_package(navis_msgs REQUIRED)
-
-link_directories(${PCL_LIBRARY_DIRS})
-add_definitions(${PCL_DEFINITIONS})
 
 # libcamera
 pkg_check_modules(LIBCAMERA REQUIRED IMPORTED_TARGET libcamera)
@@ -38,25 +32,6 @@ include_directories(
   include
   ${LIBCAMERA_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
-  ${PCL_INCLUDE_DIRS}
-)
-
-# lccv_core library
-add_library(lccv_core SHARED
-  src/lccv/lccv.cpp
-  src/lccv/libcamera_app.cpp
-  src/lccv/libcamera_app_options.cpp
-)
-
-target_include_directories(lccv_core PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:include>
-)
-
-target_link_libraries(lccv_core PUBLIC
-  PkgConfig::LIBCAMERA
-  ${OpenCV_LIBS}
-  Threads::Threads
 )
 
 # cv_cam library
@@ -74,21 +49,6 @@ target_link_libraries(cv_cam PUBLIC
   ${OpenCV_LIBS}
   Threads::Threads
 )
-
-# PCL
-add_executable(obstacle_detector 
-  src/obstacle_detection_node.cpp
-)
-ament_target_dependencies(obstacle_detector 
-  rclcpp 
-  sensor_msgs 
-  std_msgs 
-  cv_bridge
-  stereo_msgs
-  navis_msgs
-)
-
-target_link_libraries(obstacle_detector ${PCL_LIBRARIES})
 
 # stereo_node executable
 add_library(stereo_node SHARED
@@ -116,7 +76,6 @@ ament_target_dependencies(stereo_node
 )
 
 target_link_libraries(stereo_node
-  lccv_core
   cv_cam
 )
 
@@ -125,7 +84,6 @@ rclcpp_components_register_nodes(stereo_node
 
 install(TARGETS
   stereo_node
-  lccv_core
   cv_cam
   EXPORT export_${PROJECT_NAME}
   LIBRARY DESTINATION lib     # or lib/${PROJECT_NAME} – just be consistent
@@ -189,7 +147,6 @@ ament_target_dependencies(stereo_calib
 # Install targets
 install(TARGETS
   stereo_calib
-  obstacle_detector
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -215,7 +172,6 @@ install(PROGRAMS
 # Export all libraries and includes
 ament_export_include_directories(include)
 ament_export_libraries(
-  lccv_core
   cv_cam
 )
 
