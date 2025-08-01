@@ -34,7 +34,7 @@ A low-computation, high-performance synced stereo vision driver for UVC cameras 
 ```bash
 # Clone + build
 cd ~/ros2_ws/src
-git clone https://github.com/your-username/stereo-cam
+git clone git@github.com:adenm-10/stereo-cam.git
 cd ..
 colcon build --packages-select stereo_cam
 source install/setup.bash
