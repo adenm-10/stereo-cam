@@ -5,6 +5,13 @@
 ![License](https://img.shields.io/badge/License-GPLv3-blue)
 ![Build](https://img.shields.io/badge/Build-Colcon-success)
 
+**Built With**  
+![C++](https://img.shields.io/badge/Language-C++17-blue)
+![OpenCV](https://img.shields.io/badge/Vision-OpenCV-critical)
+![GStreamer](https://img.shields.io/badge/Video-GStreamer-brightgreen)
+![ROS2](https://img.shields.io/badge/Middleware-ROS2-informational)
+![RTABMap](https://img.shields.io/badge/SLAM-RTABMap-success)
+
 <p align="center">
   <img src="https://github.com/user-attachments/assets/80bddc45-abff-48a8-97b4-81c3673724d7" />
 </p>
@@ -241,4 +248,4 @@ This means:
 ---
 
 Developed by [Aden McKinney](https://github.com/adenm-10)     
-UCF Computer Engineering | Former Robotics Intern @ NASA JPL / MIT / NASA KSC / Lockheed Martin
+University of Central Florida, Computer Engineering Senior Design
