@@ -5,7 +5,10 @@
 ![License](https://img.shields.io/badge/License-GPLv3-blue)
 ![Build](https://img.shields.io/badge/Build-Colcon-success)
 
-![Demo](docs/demo.gif)
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/80bddc45-abff-48a8-97b4-81c3673724d7" />
+</p>
+
 
 ---
 
