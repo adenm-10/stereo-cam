@@ -59,7 +59,6 @@ private:
     message_filters::Subscriber<sensor_msgs::msg::Image> left_sub_;
     message_filters::Subscriber<sensor_msgs::msg::Image> right_sub_;
     
-    rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr left_info_sub_;
     rclcpp::Subscription<sensor_msgs::msg::CameraInfo>::SharedPtr right_info_sub_;
     
     using SyncPolicy = message_filters::sync_policies::ApproximateTime<

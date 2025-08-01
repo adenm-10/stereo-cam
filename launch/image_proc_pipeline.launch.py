@@ -34,7 +34,7 @@ def compose_perception(context):
     ))
 
     disparity_params = ParameterFile(os.path.join(
-        pkg_dir, 'config/disparity.yaml'
+        pkg_dir, 'config/disparity_params.yaml'
     ))
 
     # build /robot_description once so the same ParameterValue is reused

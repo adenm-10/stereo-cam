@@ -14,7 +14,6 @@
 #include <fstream>
 
 #include "cv_cam/cv_cam.hpp"
-#include "stereo_cam/icm20948.hpp"
 #include "stereo_cam/calib_utils.hpp"
 
 namespace stereo_cam {

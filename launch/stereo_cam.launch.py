@@ -6,6 +6,7 @@ from launch_ros.descriptions import ComposableNode
 from launch_ros.parameter_descriptions import ParameterValue
 import os
 from ament_index_python.packages import get_package_share_directory
+from launch.conditions import IfCondition, UnlessCondition
 
 def launch_setup(context, *args, **kwargs):
     pkg_dir = get_package_share_directory('stereo_cam')
@@ -13,6 +14,7 @@ def launch_setup(context, *args, **kwargs):
     # Config files
     raspi_config = os.path.join(pkg_dir, 'config', 'cameras', 'raspi_camera_params.yaml')
     laptop_config = os.path.join(pkg_dir, 'config', 'cameras', 'laptop_camera_params.yaml')
+    depth_config = os.path.join(pkg_dir, 'config', 'depth_params.yaml')
 
     # Determine which config to use based on 'use_raspi'
     use_raspi = LaunchConfiguration('use_raspi').perform(context)
@@ -39,8 +41,16 @@ def launch_setup(context, *args, **kwargs):
                 parameters=[
                     selected_config,
                     {'robot_description': robot_description},
-                    {'enable_depth': LaunchConfiguration('enable_depth')}
                 ]
+            ),
+            ComposableNode(
+                package='stereo_cam',
+                plugin='stereo_cam::DepthNode',
+                name='depth_node',
+                parameters=[
+                    depth_config,
+                ],
+                condition=IfCondition(LaunchConfiguration('enable_depth'))
             ),
         ],
         output='screen',

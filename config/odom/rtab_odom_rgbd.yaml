@@ -29,6 +29,9 @@ rtabmap_odom:
     Vis/FeatureType: "8" #better            # [0=SURF 1=SIFT 2=ORB 3=FAST/FREAK 4=FAST/BRIEF 5=GFTT/FREAK 6=GFTT/BRIEF 7=BRISK 8=GFTT/ORB 9=KAZE 10=ORB-OCTREE 11=SuperPoint 12=SURF/FR>
     Vis/CorType: "1" #better                # [Correspondences computation approach: 0=Features Matching, 1=Optical Flow]
 
+### FULL PARAMETER LIST ###
+# Obtained by:
+#     ros2 run rtabmap_odom stereo_odometry --params
 
 # BRIEF/Bytes = "32"                                  [Bytes is a length of descriptor in bytes. It can be equal 16, 32 or 64 bytes.]
 # BRISK/Octaves = "3"                                 [Detection octaves. Use 0 to do single scale.]

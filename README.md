@@ -1,18 +1,35 @@
-# Stereo Camera ROS 2 Package
+# Stereo UVC Camera ROS2 Interface
 
-A ROS 2 package for capturing synchronized stereo images using dual Raspberry Pi cameras. This package is built on LCCV (LibCamera CV wrapper) to provide reliable camera control and image acquisition.
+A ROS 2 package for capturing synchronized stereo images using dual UVC cameras. This package is built on OpenCV GStreamer library to provide configurable camera control and image acquisition.
 
-## Prerequisites
+## Setup
 
-- ROS 2 (Humble or newer)
-- Raspberry Pi with Raspberry Pi OS (Bullseye or newer)
+- ROS 2 Jazzy 
+- Raspberry Pi 5 with Ubuntu 24.04
 - Development packages:
 
-  ```bash
-  sudo apt install build-essential cmake git
-  sudo apt install libcamera-dev libopencv-dev
-  sudo apt install ros-humble-cv-bridge ros-humble-image-transport
-  ```
+
+### 1. Install ROS 2 Dependencies
+
+Run the following to automatically install all ROS 2 package dependencies:
+
+```bash
+rosdep install --from-paths src --ignore-src -r -y
+```
+
+> ℹ️ You must have run `rosdep init` and `rosdep update` beforehand. If `libcamera-dev` is not found, see step 2.
+
+### 2. Install Required System Packages
+
+Some dependencies (like `libcamera-dev`) must be installed manually:
+
+```bash
+sudo apt update
+sudo apt install -y \
+  libopencv-dev \
+  libcamera-dev \
+  libi2c-dev
+```
 
 ## Features
 
@@ -53,11 +70,11 @@ A ROS 2 package for capturing synchronized stereo images using dual Raspberry Pi
    ros2 run stereo_cam stereo_node --ros-args -p width:=1280 -p height:=720
    ```
 
-3. for calibrateion:
+3. for calibration:
 
-  ```bash
-  ros2 run stereo_cam stereo_calib --ros-args -p num_corners_vertical:=6 -p num_corners_horizontal:=4 -p square_size_mm:=30 -p show_chess_corners:=true
-  ```
+     ```bash
+     ros2 run stereo_cam stereo_calib --ros-args -p num_corners_vertical:=6 -p num_corners_horizontal:=4 -p square_size_mm:=30 -p show_chess_corners:=true
+     ```
 
 ## Topics
 

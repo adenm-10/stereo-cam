@@ -32,7 +32,10 @@ rtabmap_odom:
     # GFTT/MinDistance: '10'
     # GFTT/QualityLevel: '0.00001'
 
-# aden-mckinney@pierre:~/Desktop/classes/sd/Navigation_Assisted_Shopping_Cart/navis_ros2_ws$ ros2 run rtabmap_odom stereo_odometry --params
+### FULL PARAMETER LIST ###
+# Obtained by:
+#     ros2 run rtabmap_odom stereo_odometry --params
+
 # Param: BRIEF/Bytes = "32"                                  [Bytes is a length of descriptor in bytes. It can be equal 16, 32 or 64 bytes.]
 # Param: BRISK/Octaves = "3"                                 [Detection octaves. Use 0 to do single scale.]
 # Param: BRISK/PatternScale = "1"                            [Apply this scale to the pattern used for sampling the neighbourhood of a keypoint.]

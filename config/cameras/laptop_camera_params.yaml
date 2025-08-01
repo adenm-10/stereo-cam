@@ -2,6 +2,7 @@ stereo_node:
   ros__parameters:
     enable_depth: false
 
+    
     image_width: 640
     image_height: 480
     frame_rate: 120

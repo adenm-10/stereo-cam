@@ -56,12 +56,7 @@ DepthNode::DepthNode(const rclcpp::NodeOptions& options, const std::string& name
     left_sub_.subscribe(this, "left/image_raw", rmw_qos_profile_sensor_data);
     right_sub_.subscribe(this, "right/image_raw", rmw_qos_profile_sensor_data);
 
-    // Create subscribers for camera info
-    // left_info_sub_ = create_subscription<sensor_msgs::msg::CameraInfo>(
-    //     "left/camera_info", 
-    //     rclcpp::QoS(10).reliable(),
-    //     std::bind(&DepthNode::leftCameraInfoCallback, this, std::placeholders::_1));
-    
+    // Create subscriber for camera info
     right_info_sub_ = create_subscription<sensor_msgs::msg::CameraInfo>(
         "right/camera_info", 
         rclcpp::QoS(10).reliable(),
@@ -122,7 +117,6 @@ void DepthNode::rightCameraInfoCallback(const sensor_msgs::msg::CameraInfo::Shar
         RCLCPP_INFO(get_logger(), "Received right camera info: fx=%.2f, fy=%.2f, cx=%.2f, cy=%.2f, baseline=%.2f", 
                     fx_, fy_, cx_, cy_, baseline_);
         right_info_sub_.reset();
-        left_info_sub_.reset();  // We don't need left info anymore
     }
 }
 

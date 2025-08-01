@@ -1,0 +1,13 @@
+stereo_node:
+  ros__parameters:
+    use_sgbm: false
+    num_disparities: 128
+    block_size: 21
+    pre_filter_size: 9
+    pre_filter_cap: 31
+    min_disparity: 0
+    texture_threshold: 10
+    uniqueness_ratio: 15
+    speckle_window_size: 100
+    speckle_range: 32
+    disp12_max_diff: 1
