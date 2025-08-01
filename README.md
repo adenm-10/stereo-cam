@@ -18,7 +18,7 @@ A low-computation, high-performance synced stereo vision driver for UVC cameras 
 
 ---
 
-## 1. Features at a Glance
+## 1. Key Features
 
 * Software-level synchronized stereo capture
 * Raw image publishing using `image_transport`
@@ -204,7 +204,7 @@ v4l2-ctl --device=/dev/videoX --list-ctrls-menu
 2. Poor performance:
    - Reduce resolution or frame rate
    - Check system resources
-   - For rtabmap, this reource shows how to tune for minimal computation
+   - For rtabmap, this resource shows how to tune for minimal computation
      - https://wiki.ros.org/rtabmap_ros/Tutorials/Advanced%20Parameter%20Tuning
    - For ROS2 performance tuning:
      - https://www.stereolabs.com/docs/ros2/dds_and_network_tuning
