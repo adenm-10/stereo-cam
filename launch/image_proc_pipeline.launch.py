@@ -29,10 +29,6 @@ def compose_perception(context):
         pkg_dir, 'config/odom/rtab_odom_stereo.yaml'
     ))
 
-    rtab_rgbd_params = ParameterFile(os.path.join(
-        pkg_dir, 'config/odom/rtab_odom_stereo.yaml'
-    ))
-
     disparity_params = ParameterFile(os.path.join(
         pkg_dir, 'config/disparity_params.yaml'
     ))
@@ -89,19 +85,7 @@ def compose_perception(context):
             ]
         ),
 
-        # Extra disparity node for obstacle detection
-        ComposableNode(
-            package='stereo_image_proc',
-            plugin='stereo_image_proc::DisparityNode',
-            name='disparity_node',
-            parameters=[disparity_params],
-            extra_arguments=[
-                {'use_intra_process_comms': True},
-            ],
-            condition=IfCondition(LaunchConfiguration('enable_disparity')),
-        ),
-
-        # 4a Stereo Visual Odometry
+        # 4 Stereo Visual Odometry
         ComposableNode(
             package='rtabmap_odom',
             plugin='rtabmap_odom::StereoOdometry',
@@ -113,7 +97,7 @@ def compose_perception(context):
             condition=UnlessCondition(LaunchConfiguration('rgbd_mode'))
         ),
 
-        # 4b RGBD Visual Odometry
+        # Disparity node for obstacle detection
         ComposableNode(
             package='stereo_image_proc',
             plugin='stereo_image_proc::DisparityNode',
@@ -122,35 +106,8 @@ def compose_perception(context):
             extra_arguments=[
                 {'use_intra_process_comms': True},
             ],
-            condition=IfCondition(LaunchConfiguration('rgbd_mode')),
+            condition=IfCondition(LaunchConfiguration('enable_disparity')),
         ),
-
-        ComposableNode(
-            package='stereo_cam',
-            plugin='stereo_cam::DepthNode',
-            name='depth_image_node',
-            extra_arguments=[
-                {'use_intra_process_comms': True},
-            ],
-            condition=IfCondition(LaunchConfiguration('rgbd_mode')),
-        ),
-
-        ComposableNode(
-            package='rtabmap_odom',
-            plugin='rtabmap_odom::RGBDOdometry',
-            name='rtabmap_odom',
-            parameters=[rtab_rgbd_params],
-            remappings=[
-                ('rgb/image', '/left/image_rect'),
-                ('rgb/camera_info', '/left/camera_info'),
-                ('depth/image', '/camera/depth/image_raw'),
-            ],
-            extra_arguments=[
-                {'use_intra_process_comms': True},
-            ],
-            condition=IfCondition(LaunchConfiguration('rgbd_mode'))
-        ),
-
     ]
 
     # container name (auto unless user overrides)
@@ -179,7 +136,6 @@ def generate_launch_description():
         # CLI args (same semantics as your legacy file)
         DeclareLaunchArgument('use_raspi',  default_value='false'),
         DeclareLaunchArgument('enable_disparity', default_value='false'),
-        DeclareLaunchArgument('rgbd_mode', default_value='false'),
         DeclareLaunchArgument('log_level', default_value='WARN'),
         DeclareLaunchArgument('use_sim_time', default_value='false'),
         DeclareLaunchArgument('namespace',  default_value=''),

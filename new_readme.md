@@ -1,4 +1,4 @@
-# Stereo UVC Camera ROS2 Driver
+# Stereo UVC Camera ROS 2 Interface
 
 ![ROS2 Jazzy](https://img.shields.io/badge/ROS2-Jazzy-blue)
 ![Platform](https://img.shields.io/badge/Platform-Raspberry%20Pi%205-lightgrey)
@@ -9,13 +9,13 @@
 
 ---
 
-A low-computation, high-performance synced stereo vision driver for UVC cameras and ROS2. This package captures synchronized images from dual UVC cameras using OpenCV GStreamer and publishes them as ROS topics, with support for real-time stereo odometry via RTAB-Map. Designed and tested on the Raspberry Pi 5, it's ideal for embedded SLAM and mobile robotics applications.
+A low-computation, high-performance stereo vision driver for ROS 2. This package captures synchronized images from dual UVC cameras using OpenCV GStreamer and publishes them as ROS topics, with support for real-time stereo odometry via RTAB-Map. Designed and tested on the Raspberry Pi 5, it's ideal for embedded SLAM and mobile robotics applications.
 
 > 📈 Successfully used to map a 4-aisle research building with 10+ waypoints using full RTAB-Map stereo odometry on a Raspberry Pi 5. Full project info can be found [here](https://github.com/ucf-sd-spsu25g10), and a demo video found [here](https://youtu.be/ynSF1JhdaX4?t=409).
 
 ---
 
-## 1. Features at a Glance
+## Features at a Glance
 
 * Software-level synchronized stereo capture
 * Raw image publishing using `image_transport`
@@ -26,7 +26,7 @@ A low-computation, high-performance synced stereo vision driver for UVC cameras 
 
 ---
 
-## 2. Quick Start
+## Quick Start
 
 ```bash
 # Clone + build
@@ -39,13 +39,13 @@ source install/setup.bash
 
 ---
 
-## 3. Why This Project?
+## Why This Project?
 
 Most USB cameras lack hardware sync, which causes frame mismatch and stereo artifacts. This package uses finely-tuned GStreamer pipelines and ROS 2 integration to achieve near-simultaneous stereo capture without external triggers. Built for embedded deployment, it minimizes computation while supporting depth generation and visual odometry pipelines.
 
 ---
 
-## 4. Setup
+## Setup
 
 ### Requirements
 
@@ -73,7 +73,7 @@ sudo apt install -y \
 
 ---
 
-## 5. Configuration
+## Configuration
 
 ### 1. stereo_node
 ---
@@ -120,7 +120,7 @@ sudo apt install -y \
   
   To get more info on rtabmap_odom parameters and usage, I recommend reading the demos and examples on the rtabmap_ros repository, and reading through the parameter descriptions in the referenced yaml file.
 
-## 6. Usage
+## Usage
 
 ### Stereo Calibration
 
@@ -144,7 +144,7 @@ Includes image rectification, optional disparity generation, and stereo odometry
 
 ---
 
-## 7. Stereo Calibration Guide
+## 📸 Stereo Calibration Guide
 
 ### Requirements
 
@@ -177,7 +177,7 @@ ros2 run stereo_cam stereo_calib --ros-args \
 > 💡 Take 30–40 pictures. Use RMS analysis to remove \~10–15 poor pairs for accurate calibration.
 ---
 
-## 8. Camera Tuning Scripts
+## 🤖 Camera Tuning Scripts
 
 Supports `v4l2-ctl` tuning for:
 
@@ -197,7 +197,7 @@ v4l2-ctl --device=/dev/videoX --list-ctrls-menu
 
 ---
 
-## 9. Troubleshooting
+## Troubleshooting
 
 1. No cameras detected:
    - **Check payload type, resolution, and framerate compatibility for both cameras**
@@ -219,7 +219,7 @@ v4l2-ctl --device=/dev/videoX --list-ctrls-menu
 
 ---
 
-## 10. License
+## License
 
 This package is released under the GNU General Public License v3.0 (GPLv3). See the [LICENSE](LICENSE) file for details.
 
@@ -233,7 +233,7 @@ This means:
 
 ---
 
-## 11. References
+## 🔗 References
 
 * [ROS 2 Docs](https://docs.ros.org/en/jazzy/)
 * [OpenCV GStreamer](https://gstreamer.freedesktop.org/documentation/?gi-language=c)
