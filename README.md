@@ -12,9 +12,9 @@
 
 ---
 
-A low-computation, high-performance synced stereo vision driver for UVC cameras and ROS2. This package captures synchronized images from dual UVC cameras using OpenCV GStreamer and publishes them as ROS topics, with support for real-time stereo odometry via RTAB-Map. Designed and tested on the Raspberry Pi 5, it's ideal for embedded SLAM and mobile robotics applications.
+A low-computation, high-performance synced stereo vision driver for UVC cameras and ROS2. This package captures synchronized images from dual UVC cameras using OpenCV GStreamer and publishes them to ROS topics via image_transport, with support for real-time stereo odometry via RTAB-Map. Designed and tested on the Raspberry Pi 5.
 
-> 📈 Successfully used to map a 4-aisle research building with 10+ waypoints using full RTAB-Map stereo odometry on a Raspberry Pi 5. Full project info can be found [here](https://github.com/ucf-sd-spsu25g10), and a demo video found [here](https://youtu.be/ynSF1JhdaX4?t=409).
+> Successfully used to map a 4-aisle research building with 10+ waypoints using full RTAB-Map stereo odometry on a Raspberry Pi 5. Full project info can be found [here](https://github.com/ucf-sd-spsu25g10), and a demo video found [here](https://youtu.be/ynSF1JhdaX4?t=409).
 
 ---
 
